@@ -1,5 +1,7 @@
 package com.imjake9.snes.tile.gui;
 
+import com.imjake9.snes.tile.PreferencesManager;
+import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -18,6 +20,7 @@ public class PalettePanel extends JApplet implements MouseListener {
     private int currentPalette;
     
     public PalettePanel() {
+        setPalettesData(PreferencesManager.getByteArray(PrefKey.DEFAULT_PALETTES));
         setBackground(Color.BLACK);
         addMouseListener(this);
     }
@@ -30,15 +33,14 @@ public class PalettePanel extends JApplet implements MouseListener {
         String filetype = FilenameUtils.getExtension(f.getName());
         byte[] data = FileUtils.readFileToByteArray(f);
         if (filetype.equalsIgnoreCase("pal")) {
-            palettes = new Color[data.length / (3*16)][16];
-            for (int i = 0; i < palettes.length; i++) {
-                for (int j = 0; j < 16; j++) {
-                    palettes[i][j] = new Color((int) data[i*3*16 + j*3] & 0xFF, (int) data[i*3*16 + j*3 + 1] & 0xFF, (int) data[i*3*16 + j*3 + 2] & 0xFF);
-                }
-            }
+            setPalettesData(data);
         }
         currentPalette = 0;
         repaint();
+    }
+    
+    public void savePaletteAsDefault() {
+        PreferencesManager.set(PrefKey.DEFAULT_PALETTES, getPalettesData());
     }
     
     @Override
@@ -73,6 +75,34 @@ public class PalettePanel extends JApplet implements MouseListener {
         }
         repaint();
         drawingPanel.repaintAll();
+    }
+    
+    private void setPalettesData(byte[] data) {
+        if (data == null) {
+            palettes = null;
+            return;
+        }
+        palettes = new Color[data.length / (3 * 16)][16];
+        for (int i = 0; i < palettes.length; i++) {
+            for (int j = 0; j < 16; j++) {
+                palettes[i][j] = new Color((int) data[i*3*16 + j*3] & 0xFF, (int) data[i*3*16 + j*3 + 1] & 0xFF, (int) data[i*3*16 + j*3 + 2] & 0xFF);
+            }
+        }
+    }
+    
+    private byte[] getPalettesData() {
+        if (palettes == null) {
+            return null;
+        }
+        byte[] data = new byte[palettes.length * 16 * 3];
+        for (int i = 0; i < palettes.length; i++) {
+            for (int j = 0; j < 16; j++) {
+                data[i*3*16 + j*3] = (byte) palettes[i][j].getRed();
+                data[i*3*16 + j*3 + 1] = (byte) palettes[i][j].getGreen();
+                data[i*3*16 + j*3 + 2] = (byte) palettes[i][j].getBlue();
+            }
+        }
+        return data;
     }
 
     @Override

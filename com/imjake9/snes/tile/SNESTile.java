@@ -1,5 +1,6 @@
 package com.imjake9.snes.tile;
 
+import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import com.imjake9.snes.tile.gui.DrawingPanel;
 import com.imjake9.snes.tile.gui.PalettePanel;
 import java.awt.BorderLayout;
@@ -29,6 +30,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 
 public class SNESTile extends JFrame {
@@ -192,6 +194,7 @@ public class SNESTile extends JFrame {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 FileDialog filePicker = new FileDialog(window, "Open GFX", FileDialog.LOAD);
+                filePicker.setDirectory(PreferencesManager.getString(PrefKey.GFX_PATH));
                 filePicker.setVisible(true);
                 if (filePicker.getFile() == null) {
                     return;
@@ -205,6 +208,7 @@ public class SNESTile extends JFrame {
                     JOptionPane.showMessageDialog(window, "The selected file is not readable. You may not have permission to read from the selected location.", "Invalid File", JOptionPane.ERROR_MESSAGE);
                 }
                 currentFile = file;
+                PreferencesManager.set(PrefKey.GFX_PATH, filePicker.getDirectory());
                 reloadFile();
             }
         });
@@ -226,6 +230,7 @@ public class SNESTile extends JFrame {
             public void actionPerformed(ActionEvent ae) {
                 if (currentFile == null) {
                     FileDialog filePicker = new FileDialog(window, "Save GFX As", FileDialog.SAVE);
+                    filePicker.setDirectory(PreferencesManager.getString(PrefKey.GFX_PATH));
                     filePicker.setVisible(true);
                     if (filePicker.getFile() == null) {
                         return;
@@ -236,6 +241,7 @@ public class SNESTile extends JFrame {
                         return;
                     }
                     currentFile = file;
+                    PreferencesManager.set(PrefKey.GFX_PATH, filePicker.getDirectory());
                 }
                 saveFile();
             }
@@ -247,6 +253,7 @@ public class SNESTile extends JFrame {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 FileDialog filePicker = new FileDialog(window, "Save GFX As", FileDialog.SAVE);
+                filePicker.setDirectory(PreferencesManager.getString(PrefKey.GFX_PATH));
                 filePicker.setVisible(true);
                 if (filePicker.getFile() == null) {
                     return;
@@ -257,6 +264,7 @@ public class SNESTile extends JFrame {
                     return;
                 }
                 currentFile = file;
+                PreferencesManager.set(PrefKey.GFX_PATH, filePicker.getDirectory());
                 saveFile();
             }
         });
@@ -271,6 +279,8 @@ public class SNESTile extends JFrame {
                 JFileChooser filePicker = new JFileChooser();
                 filePicker.setDialogTitle("Load Palette File");
                 filePicker.setAcceptAllFileFilterUsed(false);
+                String savedPath = PreferencesManager.getString(PrefKey.PALETTE_PATH);
+                filePicker.setCurrentDirectory(savedPath == null ? null : new File(savedPath));
                 filePicker.setFileFilter(new FileNameExtensionFilter("YY-CHR Palette Files (*.pal)", "pal"));
                 int ret = filePicker.showOpenDialog(window);
                 if (ret != JFileChooser.APPROVE_OPTION) {
@@ -289,6 +299,15 @@ public class SNESTile extends JFrame {
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(window, "Error while reading palette.", "Read Error", JOptionPane.ERROR_MESSAGE);
                 }
+                PreferencesManager.set(PrefKey.PALETTE_PATH, file.getPath());
+            }
+        });
+        menu.add(item);
+        item = new JMenuItem("Set Current Palette As Default");
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                palettePanel.savePaletteAsDefault();
             }
         });
         menu.add(item);
