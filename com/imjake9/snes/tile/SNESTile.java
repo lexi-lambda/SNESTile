@@ -30,7 +30,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 
 
 public class SNESTile extends JFrame {
@@ -149,6 +148,18 @@ public class SNESTile extends JFrame {
         emptyEllipseButton.setName("STROKE_ELLIPSE");
         toolsBar.add(emptyEllipseButton);
         
+        toolsBar.addSeparator();
+        
+        JButton zoomOutButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/zoom-out.png")));
+        zoomOutButton.setName("ZOOM_OUT");
+        toolsBar.add(zoomOutButton);
+        
+        toolsBar.add(Box.createVerticalStrut(4));
+        
+        JButton zoomInButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/zoom-in.png")));
+        zoomInButton.setName("ZOOM_IN");
+        toolsBar.add(zoomInButton);
+        
         ToolsBarActionListener listener = new ToolsBarActionListener(marqueeButton);
         marqueeButton.addActionListener(listener);
         pencilButton.addActionListener(listener);
@@ -156,6 +167,8 @@ public class SNESTile extends JFrame {
         emptyRectButton.addActionListener(listener);
         filledEllipseButton.addActionListener(listener);
         emptyEllipseButton.addActionListener(listener);
+        zoomOutButton.addActionListener(listener);
+        zoomInButton.addActionListener(listener);
         
         return toolsBar;
     }
@@ -327,6 +340,14 @@ public class SNESTile extends JFrame {
         @Override
         public void actionPerformed(ActionEvent ae) {
             JButton source = (JButton) ae.getSource();
+            if (source.getName().equals("ZOOM_OUT")) {
+                drawingPanel.decrementScalingFactor();
+                return;
+            }
+            if (source.getName().equals("ZOOM_IN")) {
+                drawingPanel.incrementScalingFactor();
+                return;
+            }
             selected.setSelected(false);
             source.setSelected(true);
             selected = source;
