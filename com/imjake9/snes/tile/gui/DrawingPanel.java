@@ -42,15 +42,12 @@ public class DrawingPanel extends JPanel {
             return;
         }
         
-        g.drawImage(buffer, 0, 0, null);
+        g.drawImage(buffer, 0, 0, buffer.getWidth() * scalingFactor, buffer.getHeight() * scalingFactor, this);
     }
     
     public void repaintAll() {
         Dimension size = recalculatePreferredSize();
-        buffer = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-        
-        Graphics b = buffer.createGraphics();
-        b.fillRect(0, 0, buffer.getWidth(), buffer.getHeight());
+        buffer = new BufferedImage(size.width / scalingFactor, size.height / scalingFactor, BufferedImage.TYPE_INT_RGB);
         
         int rowPos = 0, colPos = 0;
         for (int i = 0; i < data.length; i++) {
@@ -65,15 +62,14 @@ public class DrawingPanel extends JPanel {
                 }
             }
             
-            b.setColor(palette.getColor(data[i]));
-            b.fillRect((colPos + tileCol) * scalingFactor, (rowPos + tileRow) * scalingFactor, scalingFactor, scalingFactor);
+            buffer.setRGB(colPos + tileCol, rowPos + tileRow, palette.getColor(data[i]).getRGB());
         }
         
         repaint();
     }
     
     private Dimension recalculatePreferredSize() {
-        Dimension size = new Dimension(8 * 16 * scalingFactor, (data.length / (8 * 16)) * scalingFactor);
+        Dimension size = new Dimension(8 * 16 * scalingFactor, (data.length/(8 * 16) + 7) / 8 * 8 * scalingFactor);
         setPreferredSize(size);
         JViewport viewport = (JViewport) getParent();
         viewport.doLayout();
