@@ -4,6 +4,7 @@ import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import com.imjake9.snes.tile.gui.DrawingPanel;
 import com.imjake9.snes.tile.gui.PalettePanel;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Insets;
@@ -83,6 +84,7 @@ public class SNESTile extends JFrame {
         
         drawingPanel = new DrawingPanel();
         JScrollPane drawingPane = new JScrollPane(drawingPanel);
+        drawingPane.getViewport().setBackground(Color.BLACK);
         drawingPane.setMinimumSize(new Dimension(0, 100));
         drawingPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         drawingPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -92,6 +94,7 @@ public class SNESTile extends JFrame {
         drawingPanel.setPalette(palettePanel);
         palettePanel.setDrawingPanel(drawingPanel);
         JScrollPane palettePane = new JScrollPane(palettePanel);
+        palettePane.getViewport().setBackground(Color.BLACK);
         palettePane.setMinimumSize(new Dimension(0, 100));
         palettePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         palettePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);

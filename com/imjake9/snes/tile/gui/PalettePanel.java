@@ -40,6 +40,7 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
         }
         currentPalette = 0;
         repaint();
+        drawingPanel.repaintAll();
     }
     
     public void savePaletteAsDefault() {
@@ -68,6 +69,9 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
     }
     
     private Dimension recalculatePreferredSize() {
+        if (palettes == null) {
+            return new Dimension(0, 0);
+        }
         Dimension size = new Dimension(getWidth(), (getWidth() / 16) * palettes.length);
         setPreferredSize(size);
         JViewport viewport = (JViewport) getParent();
@@ -76,6 +80,9 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
     }
     
     public Color getColor(byte index) {
+        if (palettes == null) {
+            return Color.getHSBColor(index / 16f, 1, 1);
+        }
         return palettes[currentPalette][index];
     }
 
