@@ -15,6 +15,7 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -26,6 +27,7 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.io.FileUtils;
 
 
@@ -79,7 +81,6 @@ public class SNESTile extends JFrame {
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         
         drawingPanel = new DrawingPanel();
-        drawingPanel.setPreferredSize(new Dimension(1000, 1000));
         JScrollPane drawingPane = new JScrollPane(drawingPanel);
         drawingPane.setMinimumSize(new Dimension(0, 100));
         drawingPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -88,6 +89,7 @@ public class SNESTile extends JFrame {
         
         palettePanel = new PalettePanel();
         drawingPanel.setPalette(palettePanel);
+        palettePanel.setDrawingPanel(drawingPanel);
         JScrollPane palettePane = new JScrollPane(palettePanel);
         palettePane.setMinimumSize(new Dimension(0, 100));
         palettePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -256,6 +258,37 @@ public class SNESTile extends JFrame {
                 }
                 currentFile = file;
                 saveFile();
+            }
+        });
+        menu.add(item);
+        menuBar.add(menu);
+        
+        menu = new JMenu("Palette");
+        item = new JMenuItem("Load Palette...");
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                JFileChooser filePicker = new JFileChooser();
+                filePicker.setDialogTitle("Load Palette File");
+                filePicker.setAcceptAllFileFilterUsed(false);
+                filePicker.setFileFilter(new FileNameExtensionFilter("YY-CHR Palette Files (*.pal)", "pal"));
+                int ret = filePicker.showOpenDialog(window);
+                if (ret != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                File file = filePicker.getSelectedFile();
+                if (!file.exists()) {
+                    JOptionPane.showMessageDialog(window, "The chosen file does not exist.", "Invalid File", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!file.canRead()) {
+                    JOptionPane.showMessageDialog(window, "The selected file is not readable. You may not have permission to read from the selected location.", "Invalid File", JOptionPane.ERROR_MESSAGE);
+                }
+                try {
+                    palettePanel.loadPalette(file);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(window, "Error while reading palette.", "Read Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
         menu.add(item);
