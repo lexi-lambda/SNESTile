@@ -3,17 +3,21 @@ package com.imjake9.snes.tile.gui;
 import com.imjake9.snes.tile.PreferencesManager;
 import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
-import javax.swing.JApplet;
+import javax.swing.JPanel;
+import javax.swing.JViewport;
+import javax.swing.Scrollable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 
-public class PalettePanel extends JApplet implements MouseListener {
+public class PalettePanel extends JPanel implements MouseListener, Scrollable {
     
     private DrawingPanel drawingPanel;
     private Color[][] palettes;
@@ -21,7 +25,6 @@ public class PalettePanel extends JApplet implements MouseListener {
     
     public PalettePanel() {
         setPalettesData(PreferencesManager.getByteArray(PrefKey.DEFAULT_PALETTES));
-        setBackground(Color.BLACK);
         addMouseListener(this);
     }
     
@@ -44,8 +47,10 @@ public class PalettePanel extends JApplet implements MouseListener {
     }
     
     @Override
-    public void paint(Graphics g) {
-        g.clearRect(0, 0, getWidth(), getHeight());
+    public void paintComponent(Graphics g) {
+        recalculatePreferredSize();
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, getWidth(), getHeight());
         
         if (palettes == null) {
             return;
@@ -60,6 +65,14 @@ public class PalettePanel extends JApplet implements MouseListener {
         }
         g.setColor(Color.WHITE);
         g.drawRect(0, currentPalette * squareSize, 16*squareSize - 1, squareSize - 1);
+    }
+    
+    private Dimension recalculatePreferredSize() {
+        Dimension size = new Dimension(getWidth(), (getWidth() / 16) * palettes.length);
+        setPreferredSize(size);
+        JViewport viewport = (JViewport) getParent();
+        viewport.doLayout();
+        return size;
     }
     
     public Color getColor(byte index) {
@@ -116,5 +129,30 @@ public class PalettePanel extends JApplet implements MouseListener {
 
     @Override
     public void mouseExited(MouseEvent me) {}
+
+    @Override
+    public Dimension getPreferredScrollableViewportSize() {
+        return getPreferredSize();
+    }
+
+    @Override
+    public int getScrollableUnitIncrement(Rectangle rctngl, int i, int i1) {
+        return getWidth() / 16;
+    }
+
+    @Override
+    public int getScrollableBlockIncrement(Rectangle rctngl, int i, int i1) {
+        return getWidth() / 16;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportWidth() {
+        return true;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportHeight() {
+        return false;
+    }
     
 }
