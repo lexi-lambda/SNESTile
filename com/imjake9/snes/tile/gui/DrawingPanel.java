@@ -4,12 +4,15 @@ import com.imjake9.snes.tile.DataConverter;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 
 
-public class DrawingPanel extends JPanel {
+public class DrawingPanel extends JPanel implements Scrollable {
     
     private BufferedImage buffer;
     private PalettePanel palette;
@@ -90,6 +93,31 @@ public class DrawingPanel extends JPanel {
             scalingFactor = 1;
         }
         repaintAll();
+    }
+
+    @Override
+    public Dimension getPreferredScrollableViewportSize() {
+        return getPreferredSize();
+    }
+
+    @Override
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return 16;
+    }
+
+    @Override
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return orientation == SwingConstants.VERTICAL ? visibleRect.height : visibleRect.width;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportWidth() {
+        return false;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportHeight() {
+        return false;
     }
     
 }
