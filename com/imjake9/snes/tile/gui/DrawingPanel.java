@@ -4,6 +4,7 @@ import com.imjake9.snes.tile.DataConverter;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
@@ -81,18 +82,30 @@ public class DrawingPanel extends JPanel implements Scrollable {
     
     public void incrementScalingFactor() {
         scalingFactor *= 2;
+        boolean rescale = true;
+        Point initialPoint = ((JViewport) getParent()).getViewPosition();
         if (scalingFactor > 32) {
+            rescale = false;
             scalingFactor = 32;
         }
         repaintAll();
+        if (rescale) {
+            ((JViewport) getParent()).setViewPosition(new Point(initialPoint.x, initialPoint.y * 2));
+        }
     }
     
     public void decrementScalingFactor() {
         scalingFactor /= 2;
+        boolean rescale = true;
+        Point initialPoint = ((JViewport) getParent()).getViewPosition();
         if (scalingFactor < 1) {
+            rescale = false;
             scalingFactor = 1;
         }
         repaintAll();
+        if (rescale) {
+            ((JViewport) getParent()).setViewPosition(new Point(initialPoint.x, initialPoint.y / 2));
+        }
     }
 
     @Override
