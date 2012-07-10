@@ -5,7 +5,9 @@ import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -22,6 +24,7 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
     private DrawingPanel drawingPanel;
     private Color[][] palettes;
     private int currentPalette;
+    private byte currentColor;
     
     public PalettePanel() {
         setPalettesData(PreferencesManager.getByteArray(PrefKey.DEFAULT_PALETTES));
@@ -30,6 +33,10 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
     
     public void setDrawingPanel(DrawingPanel drawingPanel) {
         this.drawingPanel = drawingPanel;
+    }
+    
+    public byte getCurrentColor() {
+        return currentColor;
     }
     
     public void loadPalette(File f) throws IOException {
@@ -64,8 +71,13 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
                 g.fillRect(j * squareSize, i * squareSize, squareSize, squareSize);
             }
         }
+        ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Color.WHITE);
         g.drawRect(0, currentPalette * squareSize, 16*squareSize - 1, squareSize - 1);
+        g.fillOval(squareSize*currentColor + squareSize/2 - 4, squareSize*currentPalette + squareSize/2 - 4, 7, 7);
+        g.setColor(Color.BLACK);
+        g.drawOval(squareSize*currentColor + squareSize/2 - 5, squareSize*currentPalette + squareSize/2 - 5, 8, 8);
+        ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
     }
     
     private Dimension recalculatePreferredSize() {
@@ -84,17 +96,6 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
             return Color.getHSBColor(index / 16f, 1, 1);
         }
         return palettes[currentPalette][index];
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent me) {
-        int squareSize = getWidth() / 16;
-        currentPalette = me.getY() / squareSize;
-        if (currentPalette > palettes.length) {
-            currentPalette = palettes.length - 1;
-        }
-        repaint();
-        drawingPanel.repaintAll();
     }
     
     private void setPalettesData(byte[] data) {
@@ -123,6 +124,25 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
             }
         }
         return data;
+    }
+    
+    
+    @Override
+    public void mouseClicked(MouseEvent me) {
+        int squareSize = getWidth() / 16;
+        int oldPalette = currentPalette;
+        currentPalette = me.getY() / squareSize;
+        if (currentPalette > palettes.length) {
+            currentPalette = palettes.length - 1;
+        }
+        currentColor = (byte) (me.getX() / squareSize);
+        if (currentColor > 0xF) {
+            currentColor = 0xF;
+        }
+        repaint();
+        if (oldPalette != currentPalette) {
+            drawingPanel.repaintAll();
+        }
     }
 
     @Override
