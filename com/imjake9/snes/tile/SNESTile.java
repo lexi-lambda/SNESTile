@@ -35,12 +35,19 @@ import org.apache.commons.io.FileUtils;
 
 public class SNESTile extends JFrame {
     
+    private static SNESTile instance;
+    
     public static void main(String[] args) {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         SNESTile mainWindow = new SNESTile();
+        instance = mainWindow;
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainWindow.setSize(600, 500);
         mainWindow.setVisible(true);
+    }
+    
+    public static SNESTile getInstance() {
+        return instance;
     }
     
     private File currentFile;
@@ -51,6 +58,14 @@ public class SNESTile extends JFrame {
     public SNESTile() {
         super("SNESTile");
         setupGUI();
+    }
+    
+    public DrawingPanel getDrawingPanel() {
+        return drawingPanel;
+    }
+    
+    public PalettePanel getPalettePanel() {
+        return palettePanel;
     }
     
     private void reloadFile() {
