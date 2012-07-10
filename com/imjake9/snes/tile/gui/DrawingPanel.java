@@ -102,6 +102,9 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     }
     
     public void repaintAll() {
+        if (data == null) {
+            return;
+        }
         Dimension size = recalculatePreferredSize();
         buffer = new BufferedImage(size.width / scalingFactor, size.height / scalingFactor, BufferedImage.TYPE_INT_RGB);
         overlay = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_ARGB);
