@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
@@ -13,12 +15,13 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 
 
-public class DrawingPanel extends JPanel implements Scrollable {
+public class DrawingPanel extends JPanel implements MouseListener, Scrollable {
     
     private BufferedImage buffer;
     private PalettePanel palette;
     private byte[] data;
     private int scalingFactor = 2;
+    private Tool currentTool = Tool.MARQUEE;
     
     public DrawingPanel() {
         this.setBackground(Color.BLACK);
@@ -35,6 +38,18 @@ public class DrawingPanel extends JPanel implements Scrollable {
     
     public byte[] getData() {
         return DataConverter.toSNES4BPP(data);
+    }
+    
+    public void setCurrentTool(Tool tool) {
+        currentTool = tool;
+    }
+    
+    public void setCurrentTool(String tool) {
+        currentTool = Tool.valueOf(tool);
+    }
+    
+    public Tool getCurrentTool() {
+        return currentTool;
     }
     
     @Override
@@ -107,6 +122,24 @@ public class DrawingPanel extends JPanel implements Scrollable {
             ((JViewport) getParent()).setViewPosition(new Point(initialPoint.x, initialPoint.y / 2));
         }
     }
+    
+    @Override
+    public void mouseClicked(MouseEvent me) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent me) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent me) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent me) {}
+
+    @Override
+    public void mouseExited(MouseEvent me) {}
 
     @Override
     public Dimension getPreferredScrollableViewportSize() {
@@ -131,6 +164,15 @@ public class DrawingPanel extends JPanel implements Scrollable {
     @Override
     public boolean getScrollableTracksViewportHeight() {
         return false;
+    }
+    
+    public static enum Tool {
+        MARQUEE,
+        PENCIL,
+        FILL_RECT,
+        STROKE_RECT,
+        FILL_ELLIPSE,
+        STROKE_ELLIPSE;
     }
     
 }

@@ -354,6 +354,7 @@ public class SNESTile extends JFrame {
             selected.setSelected(false);
             source.setSelected(true);
             selected = source;
+            drawingPanel.setCurrentTool(source.getName());
             System.out.println(source.getName());
         }
         
