@@ -2,6 +2,7 @@ package com.imjake9.snes.tile.gui;
 
 import com.imjake9.snes.tile.DataConverter;
 import com.imjake9.snes.tile.SNESTile;
+import com.imjake9.snes.tile.utils.GuiUtils;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
@@ -73,6 +74,12 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         data[tile*64 + pixel] = index;
         
         repaint();
+    }
+    
+    private byte getPixelColor(Point location) {
+        int tile = location.x/8 + (location.y / 8)*16;
+        int pixel = location.x%8 + (location.y%8)*8;
+        return data[tile*64 + pixel];
     }
     
     public Graphics2D getOverlay() {
@@ -170,18 +177,26 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     @Override
     public void mouseClicked(MouseEvent me) {
-        currentTool.mouseClicked(getSelectedPixel(me));
+        if (GuiUtils.isLeftClick(me)) {
+            currentTool.mouseClicked(getSelectedPixel(me));
+        } else if (GuiUtils.isRightClick(me)) {
+            palette.setCurrentColor(getPixelColor(getSelectedPixel(me)));
+        }
     }
 
     @Override
     public void mousePressed(MouseEvent me) {
-        currentTool.mouseDown(getSelectedPixel(me));
-        currentTool.mouseDragged(getSelectedPixel(me));
+        if (GuiUtils.isLeftClick(me)) {
+            currentTool.mouseDown(getSelectedPixel(me));
+            currentTool.mouseDragged(getSelectedPixel(me));
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent me) {
-        currentTool.mouseUp(getSelectedPixel(me));
+        if (GuiUtils.isLeftClick(me)) {
+            currentTool.mouseUp(getSelectedPixel(me));
+        }
     }
 
     @Override
@@ -192,7 +207,9 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     @Override
     public void mouseDragged(MouseEvent me) {
-        currentTool.mouseDragged(getSelectedPixel(me));
+        if (GuiUtils.isLeftClick(me)) {
+            currentTool.mouseDragged(getSelectedPixel(me));
+        }
     }
     
     @Override

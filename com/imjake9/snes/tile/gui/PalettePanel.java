@@ -35,6 +35,11 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
         this.drawingPanel = drawingPanel;
     }
     
+    public void setCurrentColor(byte index) {
+        currentColor = index;
+        repaint();
+    }
+    
     public byte getCurrentColor() {
         return currentColor;
     }
