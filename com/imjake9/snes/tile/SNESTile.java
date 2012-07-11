@@ -29,7 +29,9 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.undo.UndoManager;
 import org.apache.commons.io.FileUtils;
 
 
@@ -54,6 +56,8 @@ public class SNESTile extends JFrame {
     private int fileSize;
     private DrawingPanel drawingPanel;
     private PalettePanel palettePanel;
+    private UndoManager undoManager = new UndoManager();
+    private UndoRedoListener undoRedoListener = new UndoRedoListener();
     
     public SNESTile() {
         super("SNESTile");
@@ -66,6 +70,11 @@ public class SNESTile extends JFrame {
     
     public PalettePanel getPalettePanel() {
         return palettePanel;
+    }
+    
+    public void addUndoableEdit(UndoableEditEvent uee) {
+        undoManager.undoableEditHappened(uee);
+        undoRedoListener.refreshMenuStates();
     }
     
     private void reloadFile() {
@@ -311,6 +320,21 @@ public class SNESTile extends JFrame {
         menu.add(item);
         menuBar.add(menu);
         
+        menu = new JMenu("Edit");
+        item = new JMenuItem("Undo");
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        item.addActionListener(undoRedoListener);
+        undoRedoListener.setUndoItem(item);
+        item.setEnabled(false);
+        menu.add(item);
+        item = new JMenuItem("Redo");
+        item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        item.addActionListener(undoRedoListener);
+        undoRedoListener.setRedoItem(item);
+        item.setEnabled(false);
+        menu.add(item);
+        menuBar.add(menu);
+        
         menu = new JMenu("Palette");
         item = new JMenuItem("Load Palette...");
         item.addActionListener(new ActionListener() {
@@ -386,6 +410,36 @@ public class SNESTile extends JFrame {
             selected = source;
             drawingPanel.setCurrentTool(source.getName());
             System.out.println(source.getName());
+        }
+        
+    }
+    
+    class UndoRedoListener implements ActionListener {
+        
+        private JMenuItem undoItem;
+        private JMenuItem redoItem;
+        
+        public void setUndoItem(JMenuItem undoItem) {
+            this.undoItem = undoItem;
+        }
+        
+        public void setRedoItem(JMenuItem redoItem) {
+            this.redoItem = redoItem;
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent ae) {
+            if (ae.getSource() == undoItem) {
+                undoManager.undo();
+            } else {
+                undoManager.redo();
+            }
+            refreshMenuStates();
+        }
+        
+        public void refreshMenuStates() {
+            undoItem.setEnabled(undoManager.canUndo());
+            redoItem.setEnabled(undoManager.canRedo());
         }
         
     }

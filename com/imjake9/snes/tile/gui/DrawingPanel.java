@@ -3,6 +3,7 @@ package com.imjake9.snes.tile.gui;
 import com.imjake9.snes.tile.DataConverter;
 import com.imjake9.snes.tile.SNESTile;
 import com.imjake9.snes.tile.utils.GuiUtils;
+import com.imjake9.snes.tile.utils.Pair;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
@@ -15,10 +16,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
+import javax.swing.undo.AbstractUndoableEdit;
 
 
 public class DrawingPanel extends JPanel implements MouseListener, MouseMotionListener, Scrollable {
@@ -273,15 +277,15 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     }
     
     public static enum Tool {
-        MARQUEE,
-        PENCIL {
+        MARQUEE("Marquee"),
+        PENCIL("Pencil") {
             @Override
             public void mouseDragged(Point location) {
                 SNESTile window = SNESTile.getInstance();
                 window.getDrawingPanel().setPixelColor(location, window.getPalettePanel().getCurrentColor());
             }
         },
-        FILL_RECT {
+        FILL_RECT("Fill Rectangle") {
             private Point rectStart;
             @Override
             public void mouseDown(Point location) {
@@ -312,7 +316,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 panel.repaint();
             }
         },
-        STROKE_RECT {
+        STROKE_RECT("Stroke Rectangle") {
             private Point rectStart;
             @Override
             public void mouseDown(Point location) {
@@ -347,17 +351,66 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 panel.repaint();
             }
         },
-        FILL_ELLIPSE,
-        STROKE_ELLIPSE;
+        FILL_ELLIPSE("Fill Ellipse"),
+        STROKE_ELLIPSE("Stroke Ellipse");
         
         private static Rectangle getDrawableRect(Point a, Point b) {
             return new Rectangle(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+        }
+        
+        private final String displayName;
+        
+        Tool(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
         }
         
         public void mouseClicked(Point location) {}
         public void mouseDown(Point location) {}
         public void mouseUp(Point location) {}
         public void mouseDragged(Point location) {}
+    }
+    
+    public static class PaintAction extends AbstractUndoableEdit {
+        
+        protected final Map<Point, Pair<Byte, Byte>> modifiedPixels;
+        private final Tool tool;
+        
+        public PaintAction(Map<Point, Pair<Byte, Byte>> modifiedPixels) {
+            this(modifiedPixels, null);
+        }
+        
+        public PaintAction(Map<Point, Pair<Byte, Byte>> modifiedPixels, Tool tool) {
+            this.modifiedPixels = modifiedPixels;
+            this.tool = tool;
+        }
+        
+        @Override
+        public void undo() {
+            super.undo();
+            DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+            for (Entry<Point, Pair<Byte, Byte>> entry : modifiedPixels.entrySet()) {
+                panel.setPixelColor(entry.getKey(), entry.getValue().getLeft());
+            }
+        }
+        
+        @Override
+        public void redo() {
+            super.redo();
+            DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+            for (Entry<Point, Pair<Byte, Byte>> entry : modifiedPixels.entrySet()) {
+                panel.setPixelColor(entry.getKey(), entry.getValue().getRight());
+            }
+        }
+        
+        @Override
+        public String getPresentationName() {
+            return tool == null ? "Draw" : tool.getDisplayName();
+        }
+        
     }
     
 }
