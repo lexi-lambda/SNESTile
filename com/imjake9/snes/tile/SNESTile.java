@@ -178,6 +178,14 @@ public class SNESTile extends JFrame {
         zoomInButton.setName("ZOOM_IN");
         toolsBar.add(zoomInButton);
         
+        toolsBar.add(Box.createVerticalStrut(4));
+        
+        JButton gridButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/grid.png")));
+        gridButton.setName("GRID");
+        gridButton.setSelected(PreferencesManager.getBoolean(PrefKey.GRID_ENABLED, false));
+        drawingPanel.setGridEnabled(gridButton.isSelected());
+        toolsBar.add(gridButton);
+        
         ToolsBarActionListener listener = new ToolsBarActionListener(marqueeButton);
         marqueeButton.addActionListener(listener);
         pencilButton.addActionListener(listener);
@@ -187,6 +195,7 @@ public class SNESTile extends JFrame {
         emptyEllipseButton.addActionListener(listener);
         zoomOutButton.addActionListener(listener);
         zoomInButton.addActionListener(listener);
+        gridButton.addActionListener(listener);
         
         return toolsBar;
     }
@@ -364,6 +373,12 @@ public class SNESTile extends JFrame {
             }
             if (source.getName().equals("ZOOM_IN")) {
                 drawingPanel.incrementScalingFactor();
+                return;
+            }
+            if (source.getName().equals("GRID")) {
+                drawingPanel.setGridEnabled(!drawingPanel.getGridEnabled());
+                source.setSelected(drawingPanel.getGridEnabled());
+                PreferencesManager.set(PrefKey.GRID_ENABLED, drawingPanel.getGridEnabled());
                 return;
             }
             selected.setSelected(false);

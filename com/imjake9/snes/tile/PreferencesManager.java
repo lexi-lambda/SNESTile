@@ -11,6 +11,10 @@ public class PreferencesManager {
         prefs.put(key.name(), value);
     }
     
+    public static void set(PrefKey key, boolean value) {
+        prefs.putBoolean(key.name(), value);
+    }
+    
     public static void set(PrefKey key, byte[] value) {
         prefs.putByteArray(key.name(), value);
     }
@@ -21,6 +25,14 @@ public class PreferencesManager {
     
     public static String getString(PrefKey key, String def) {
         return prefs.get(key.name(), def);
+    }
+    
+    public static boolean getBoolean(PrefKey key) {
+        return getBoolean(key, false);
+    }
+    
+    public static boolean getBoolean(PrefKey key, boolean def) {
+        return prefs.getBoolean(key.name(), def);
     }
     
     public static byte[] getByteArray(PrefKey key) {
@@ -34,7 +46,8 @@ public class PreferencesManager {
     public static enum PrefKey {
         GFX_PATH,
         PALETTE_PATH,
-        DEFAULT_PALETTES;
+        DEFAULT_PALETTES,
+        GRID_ENABLED;
     }
     
 }

@@ -29,6 +29,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     private byte[] data;
     private int scalingFactor = 2;
     private Tool currentTool = Tool.MARQUEE;
+    private boolean gridEnabled;
     
     public DrawingPanel() {
         this.setBackground(Color.BLACK);
@@ -63,6 +64,15 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     public Tool getCurrentTool() {
         return currentTool;
+    }
+    
+    public void setGridEnabled(boolean gridEnabled) {
+        this.gridEnabled = gridEnabled;
+        repaint();
+    }
+    
+    public boolean getGridEnabled() {
+        return gridEnabled;
     }
     
     public void setPixelColor(Point location, byte index) {
@@ -100,12 +110,34 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
         
-        if (palette == null || data == null || buffer == null) {
+        if (palette == null || data == null || buffer == null || overlay == null) {
             return;
         }
         
         g.drawImage(buffer, 0, 0, buffer.getWidth() * scalingFactor, buffer.getHeight() * scalingFactor, null);
         g.drawImage(overlay, 0, 0, overlay.getWidth() * scalingFactor, overlay.getHeight() * scalingFactor, null);
+        
+        if (gridEnabled) {
+            int interval = scalingFactor > 8 ? 4
+                         : scalingFactor > 4 ? 8
+                                             : 16;
+            for (int i = 0; i < buffer.getWidth() * scalingFactor; i += interval * scalingFactor) {
+                if (i % (16 * scalingFactor) == 0) {
+                    g.setColor(new Color(0xFFFFFFFF, true));
+                } else {
+                    g.setColor(new Color(0x7FFFFFFF, true));
+                }
+                g.drawLine(i, 0, i, buffer.getHeight() * scalingFactor);
+            }
+            for (int i = 0; i < buffer.getHeight() * scalingFactor; i += interval * scalingFactor) {
+                if (i % (16 * scalingFactor) == 0) {
+                    g.setColor(new Color(0xFFFFFFFF, true));
+                } else {
+                    g.setColor(new Color(0x7FFFFFFF, true));
+                }
+                g.drawLine(0, i, buffer.getWidth() * scalingFactor, i);
+            }
+        }
     }
     
     public void repaintAll() {
