@@ -34,7 +34,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     private PalettePanel palette;
     private byte[] data;
     private int scalingFactor = 2;
-    private Tool currentTool = Tool.MARQUEE;
+    private Tool currentTool = Tool.PENCIL;
     private boolean gridEnabled;
     
     public DrawingPanel() {

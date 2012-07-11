@@ -141,7 +141,6 @@ public class SNESTile extends JFrame {
         toolsBar.setMargin(new Insets(3, 1, 1, 1));
         
         JButton marqueeButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/marquee.png")));
-        marqueeButton.setSelected(true);
         marqueeButton.setName("MARQUEE");
         toolsBar.add(marqueeButton);
         
@@ -149,6 +148,7 @@ public class SNESTile extends JFrame {
         
         JButton pencilButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/pencil.png")));
         pencilButton.setName("PENCIL");
+        pencilButton.setSelected(true);
         toolsBar.add(pencilButton);
         
         toolsBar.add(Box.createVerticalStrut(4));
@@ -195,7 +195,7 @@ public class SNESTile extends JFrame {
         drawingPanel.setGridEnabled(gridButton.isSelected());
         toolsBar.add(gridButton);
         
-        ToolsBarActionListener listener = new ToolsBarActionListener(marqueeButton);
+        ToolsBarActionListener listener = new ToolsBarActionListener(pencilButton);
         marqueeButton.addActionListener(listener);
         pencilButton.addActionListener(listener);
         filledRectButton.addActionListener(listener);
