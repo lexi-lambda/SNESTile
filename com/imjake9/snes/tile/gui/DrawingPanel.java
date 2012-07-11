@@ -16,12 +16,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
+import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.AbstractUndoableEdit;
 
 
@@ -279,10 +281,22 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     public static enum Tool {
         MARQUEE("Marquee"),
         PENCIL("Pencil") {
+            private Map<Point, Pair<Byte, Byte>> actionMap;
+            @Override
+            public void mouseDown(Point location) {
+                actionMap = new HashMap<Point, Pair<Byte, Byte>>();
+            }
             @Override
             public void mouseDragged(Point location) {
                 SNESTile window = SNESTile.getInstance();
+                if (!actionMap.containsKey(location))
+                    actionMap.put(location, new Pair<Byte, Byte>(window.getDrawingPanel().getPixelColor(location), window.getPalettePanel().getCurrentColor()));
                 window.getDrawingPanel().setPixelColor(location, window.getPalettePanel().getCurrentColor());
+            }
+            @Override
+            public void mouseUp(Point location) {
+                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
+                actionMap = null;
             }
         },
         FILL_RECT("Fill Rectangle") {
@@ -307,13 +321,18 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 panel.clearOverlay();
+                Map<Point, Pair<Byte, Byte>> actionMap = new HashMap<Point, Pair<Byte, Byte>>();
                 Rectangle rect = getDrawableRect(rectStart, location);
                 for (int i = rect.x; i < rect.x + rect.width + 1; i++) {
                     for (int j = rect.y; j < rect.y + rect.height + 1; j++) {
-                        panel.setPixelColor(new Point(i, j), palette.getCurrentColor());
+                        Point p = new Point(i, j);
+                        if (!actionMap.containsKey(p))
+                            actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getCurrentColor()));
+                        panel.setPixelColor(p, palette.getCurrentColor());
                     }
                 }
                 panel.repaint();
+                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
             }
         },
         STROKE_RECT("Stroke Rectangle") {
@@ -338,17 +357,34 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 panel.clearOverlay();
+                Map<Point, Pair<Byte, Byte>> actionMap = new HashMap<Point, Pair<Byte, Byte>>();
                 Rectangle rect = getDrawableRect(rectStart, location);
                 for (int i = rect.x; i < rect.x + rect.width; i++) {
-                    panel.setPixelColor(new Point(i, rect.y), palette.getCurrentColor());
-                    panel.setPixelColor(new Point(i, rect.y + rect.height), palette.getCurrentColor());
+                    Point p1 = new Point(i, rect.y);
+                    Point p2 = new Point(i, rect.y + rect.height);
+                    if (!actionMap.containsKey(p1))
+                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getCurrentColor()));
+                    if (!actionMap.containsKey(p2))
+                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getCurrentColor()));
+                    panel.setPixelColor(p1, palette.getCurrentColor());
+                    panel.setPixelColor(p2, palette.getCurrentColor());
                 }
                 for (int i = rect.y; i < rect.y + rect.height; i++) {
-                    panel.setPixelColor(new Point(rect.x, i), palette.getCurrentColor());
-                    panel.setPixelColor(new Point(rect.x + rect.width, i), palette.getCurrentColor());
+                    Point p1 = new Point(rect.x, i);
+                    Point p2 = new Point(rect.x + rect.width, i);
+                    if (!actionMap.containsKey(p1))
+                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getCurrentColor()));
+                    if (!actionMap.containsKey(p2))
+                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getCurrentColor()));
+                    panel.setPixelColor(p1, palette.getCurrentColor());
+                    panel.setPixelColor(p2, palette.getCurrentColor());
                 }
-                panel.setPixelColor(new Point(rect.x + rect.width, rect.y + rect.height), palette.getCurrentColor());
+                Point p = new Point(rect.x + rect.width, rect.y + rect.height);
+                if (!actionMap.containsKey(p))
+                    actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getCurrentColor()));
+                panel.setPixelColor(p, palette.getCurrentColor());
                 panel.repaint();
+                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
             }
         },
         FILL_ELLIPSE("Fill Ellipse"),
@@ -374,16 +410,16 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         public void mouseDragged(Point location) {}
     }
     
-    public static class PaintAction extends AbstractUndoableEdit {
+    public static class DrawAction extends AbstractUndoableEdit {
         
         protected final Map<Point, Pair<Byte, Byte>> modifiedPixels;
         private final Tool tool;
         
-        public PaintAction(Map<Point, Pair<Byte, Byte>> modifiedPixels) {
+        public DrawAction(Map<Point, Pair<Byte, Byte>> modifiedPixels) {
             this(modifiedPixels, null);
         }
         
-        public PaintAction(Map<Point, Pair<Byte, Byte>> modifiedPixels, Tool tool) {
+        public DrawAction(Map<Point, Pair<Byte, Byte>> modifiedPixels, Tool tool) {
             this.modifiedPixels = modifiedPixels;
             this.tool = tool;
         }
@@ -395,6 +431,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
             for (Entry<Point, Pair<Byte, Byte>> entry : modifiedPixels.entrySet()) {
                 panel.setPixelColor(entry.getKey(), entry.getValue().getLeft());
             }
+            panel.repaint();
         }
         
         @Override
@@ -404,6 +441,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
             for (Entry<Point, Pair<Byte, Byte>> entry : modifiedPixels.entrySet()) {
                 panel.setPixelColor(entry.getKey(), entry.getValue().getRight());
             }
+            panel.repaint();
         }
         
         @Override
