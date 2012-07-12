@@ -2,12 +2,16 @@ package com.imjake9.snes.tile;
 
 import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import com.imjake9.snes.tile.gui.DrawingPanel;
+import com.imjake9.snes.tile.gui.DrawingPanel.Tool;
 import com.imjake9.snes.tile.gui.PalettePanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Insets;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -57,11 +61,47 @@ public class SNESTile extends JFrame {
     private DrawingPanel drawingPanel;
     private PalettePanel palettePanel;
     private UndoManager undoManager = new UndoManager();
+    private ToolsBarActionListener toolsBarActionListener;
     private UndoRedoListener undoRedoListener = new UndoRedoListener();
     
     public SNESTile() {
         super("SNESTile");
         setupGUI();
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent ke) {
+                if (ke.getID() != KeyEvent.KEY_PRESSED) {
+                    return false;
+                }
+                if (ke.getModifiers() != 0) {
+                    return false;
+                }
+                switch (ke.getKeyCode()) {
+                    case KeyEvent.VK_M:
+                        toolsBarActionListener.setSelectedTool(Tool.MARQUEE);
+                        return true;
+                    case KeyEvent.VK_B:
+                        toolsBarActionListener.setSelectedTool(Tool.PENCIL);
+                        return true;
+                    case KeyEvent.VK_R:
+                        toolsBarActionListener.setSelectedTool(Tool.FILL_RECT);
+                        return true;
+                    case KeyEvent.VK_T:
+                        toolsBarActionListener.setSelectedTool(Tool.STROKE_RECT);
+                        return true;
+                    case KeyEvent.VK_C:
+                        toolsBarActionListener.setSelectedTool(Tool.FILL_ELLIPSE);
+                        return true;
+                    case KeyEvent.VK_V:
+                        toolsBarActionListener.setSelectedTool(Tool.STROKE_ELLIPSE);
+                        return true;
+                    case KeyEvent.VK_G:
+                        toolsBarActionListener.toggleGrid();
+                        return true;
+                }
+                return false;
+            }
+        });
     }
     
     public DrawingPanel getDrawingPanel() {
@@ -195,16 +235,16 @@ public class SNESTile extends JFrame {
         drawingPanel.setGridEnabled(gridButton.isSelected());
         toolsBar.add(gridButton);
         
-        ToolsBarActionListener listener = new ToolsBarActionListener(pencilButton);
-        marqueeButton.addActionListener(listener);
-        pencilButton.addActionListener(listener);
-        filledRectButton.addActionListener(listener);
-        emptyRectButton.addActionListener(listener);
-        filledEllipseButton.addActionListener(listener);
-        emptyEllipseButton.addActionListener(listener);
-        zoomOutButton.addActionListener(listener);
-        zoomInButton.addActionListener(listener);
-        gridButton.addActionListener(listener);
+        toolsBarActionListener = new ToolsBarActionListener(pencilButton);
+        marqueeButton.addActionListener(toolsBarActionListener);
+        pencilButton.addActionListener(toolsBarActionListener);
+        filledRectButton.addActionListener(toolsBarActionListener);
+        emptyRectButton.addActionListener(toolsBarActionListener);
+        filledEllipseButton.addActionListener(toolsBarActionListener);
+        emptyEllipseButton.addActionListener(toolsBarActionListener);
+        zoomOutButton.addActionListener(toolsBarActionListener);
+        zoomInButton.addActionListener(toolsBarActionListener);
+        gridButton.addActionListener(toolsBarActionListener);
         
         return toolsBar;
     }
@@ -386,6 +426,29 @@ public class SNESTile extends JFrame {
         
         public ToolsBarActionListener(JButton selected) {
             this.selected = selected;
+        }
+        
+        public void setSelectedTool(Tool tool) {
+            drawingPanel.setCurrentTool(tool);
+            for (Component c : selected.getParent().getComponents()) {
+                if (c.getName() != null && c.getName().equals(tool.name())) {
+                    JButton button = (JButton) c;
+                    selected.setSelected(false);
+                    button.setSelected(true);
+                    selected = button;
+                    break;
+                }
+            }
+        }
+        
+        public void toggleGrid() {
+            drawingPanel.setGridEnabled(!drawingPanel.getGridEnabled());
+            for (Component c : selected.getParent().getComponents()) {
+                if (c.getName() != null && c.getName().equals("GRID")) {
+                    ((JButton) c).setSelected(drawingPanel.getGridEnabled());
+                    PreferencesManager.set(PrefKey.GRID_ENABLED, drawingPanel.getGridEnabled());
+                }
+            }
         }
         
         @Override
