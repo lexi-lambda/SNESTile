@@ -216,6 +216,8 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         return new Point(me.getX()/scalingFactor, me.getY()/scalingFactor);
     }
     
+    private Point previousLocation;
+    
     @Override
     public void mouseClicked(MouseEvent me) {
         if (GuiUtils.isLeftClick(me)) {
@@ -230,6 +232,8 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         if (GuiUtils.isLeftClick(me)) {
             currentTool.mouseDown(getSelectedPixel(me));
             currentTool.mouseDragged(getSelectedPixel(me));
+        } else if (GuiUtils.isMiddleClick(me)) {
+            previousLocation = me.getLocationOnScreen();
         }
     }
 
@@ -250,6 +254,14 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     public void mouseDragged(MouseEvent me) {
         if (GuiUtils.isLeftClick(me)) {
             currentTool.mouseDragged(getSelectedPixel(me));
+        } else if (GuiUtils.isMiddleClick(me) && previousLocation != null) {
+            JViewport viewport = (JViewport) getParent();
+            Point newLocation = me.getLocationOnScreen();
+            Rectangle viewRect = viewport.getViewRect();
+            viewRect.x += previousLocation.x - newLocation.x;
+            viewRect.y += previousLocation.y - newLocation.y;
+            scrollRectToVisible(viewRect);
+            previousLocation = newLocation;
         }
     }
     
