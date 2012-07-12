@@ -15,6 +15,8 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +29,7 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.AbstractUndoableEdit;
 
 
-public class DrawingPanel extends JPanel implements MouseListener, MouseMotionListener, Scrollable {
+public class DrawingPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, Scrollable {
     
     private BufferedImage buffer;
     private BufferedImage overlay;
@@ -41,6 +43,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         this.setBackground(Color.BLACK);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
+        this.addMouseWheelListener(this);
     }
     
     public void setPalette(PalettePanel palette) {
@@ -252,6 +255,19 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     @Override
     public void mouseMoved(MouseEvent me) {}
+    
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent mwe) {
+        if (GuiUtils.isMenuShortcutKeyDown(mwe)) {
+            if (mwe.getWheelRotation() < 0) {
+                incrementScalingFactor();
+            } else {
+                decrementScalingFactor();
+            }
+        } else {
+            getParent().getParent().dispatchEvent(mwe);
+        }
+    }
     
     @Override
     public Dimension getPreferredScrollableViewportSize() {
