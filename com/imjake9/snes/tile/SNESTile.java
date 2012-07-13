@@ -5,6 +5,7 @@ import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import com.imjake9.snes.tile.gui.DrawingPanel;
 import com.imjake9.snes.tile.gui.DrawingPanel.Tool;
 import com.imjake9.snes.tile.gui.PalettePanel;
+import com.imjake9.snes.tile.gui.PreferencesPanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -57,6 +58,7 @@ public class SNESTile extends JFrame {
         return instance;
     }
     
+    private PreferencesPanel prefPanel;
     private File currentFile;
     private int fileSize;
     private DrawingPanel drawingPanel;
@@ -69,8 +71,13 @@ public class SNESTile extends JFrame {
         super("SNESTile");
         setupGUI();
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+            private KeyEvent pass;
             @Override
             public boolean dispatchKeyEvent(KeyEvent ke) {
+                if (ke.getID() == KeyEvent.KEY_RELEASED && prefPanel.isSetting()) {
+                    prefPanel.keyReleased(ke);
+                    return true;
+                }
                 if (ke.getID() != KeyEvent.KEY_PRESSED) {
                     return false;
                 }
@@ -159,6 +166,9 @@ public class SNESTile extends JFrame {
         add(toolsBar, BorderLayout.EAST);
         
         setJMenuBar(setupMenuBar());
+        
+        prefPanel = new PreferencesPanel();
+        prefPanel.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     }
     
     private JToolBar setupToolsBar() {
@@ -360,6 +370,15 @@ public class SNESTile extends JFrame {
         item.addActionListener(undoRedoListener);
         undoRedoListener.setRedoItem(item);
         item.setEnabled(false);
+        menu.add(item);
+        menu.addSeparator();
+        item = new JMenuItem("Keyboard Shortcuts...");
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                prefPanel.setVisible(true);
+            }
+        });
         menu.add(item);
         menuBar.add(menu);
         

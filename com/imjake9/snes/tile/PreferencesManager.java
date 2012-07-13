@@ -53,29 +53,40 @@ public class PreferencesManager {
     }
     
     public static enum KeyboardShortcut {
-        TOOL_MARQUEE(KeyEvent.VK_M),
-        TOOL_PENCIL(KeyEvent.VK_B),
-        TOOL_FILL_RECT(KeyEvent.VK_R),
-        TOOL_STROKE_RECT(KeyEvent.VK_T),
-        TOOL_FILL_ELLIPSE(KeyEvent.VK_C),
-        TOOL_STROKE_ELLIPSE(KeyEvent.VK_V),
-        TOGGLE_GRID(KeyEvent.VK_G);
+        TOOL_MARQUEE(KeyEvent.VK_M, "Marquee Tool"),
+        TOOL_PENCIL(KeyEvent.VK_B, "Pencil Tool"),
+        TOOL_FILL_RECT(KeyEvent.VK_R, "Fill Rectangle Tool"),
+        TOOL_STROKE_RECT(KeyEvent.VK_T, "Stroke Rectangle Tool"),
+        TOOL_FILL_ELLIPSE(KeyEvent.VK_C, "Fill Ellipse Tool"),
+        TOOL_STROKE_ELLIPSE(KeyEvent.VK_V, "Stroke Ellipse Tool"),
+        TOGGLE_GRID(KeyEvent.VK_G, "Toggle Grid");
         
         private int def;
         private int shortcut;
+        private String displayName;
         
-        KeyboardShortcut(int def) {
+        KeyboardShortcut(int def, String displayName) {
             this.def = def;
             shortcut = keys.getInt(name() + "/key", def);
+            this.displayName = displayName;
         }
         
         public void setShortcut(int shortcutKey) {
-            keys.putInt(name() + "/key", shortcutKey == def ? null : shortcutKey);
+            if (shortcutKey == def) {
+                keys.remove(name() + "/key");
+            } else {
+                keys.putInt(name() + "/key", shortcutKey);
+            }
             shortcut = shortcutKey;
         }
         
         public int getShortcut() {
             return shortcut;
+        }
+        
+        @Override
+        public String toString() {
+            return displayName;
         }
         
     }
