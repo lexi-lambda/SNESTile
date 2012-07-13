@@ -1,5 +1,6 @@
 package com.imjake9.snes.tile;
 
+import com.imjake9.snes.tile.PreferencesManager.KeyboardShortcut;
 import com.imjake9.snes.tile.PreferencesManager.PrefKey;
 import com.imjake9.snes.tile.gui.DrawingPanel;
 import com.imjake9.snes.tile.gui.DrawingPanel.Tool;
@@ -76,28 +77,15 @@ public class SNESTile extends JFrame {
                 if (ke.getModifiers() != 0) {
                     return false;
                 }
-                switch (ke.getKeyCode()) {
-                    case KeyEvent.VK_M:
-                        toolsBarActionListener.setSelectedTool(Tool.MARQUEE);
+                for (Tool tool : Tool.values()) {
+                    if (ke.getKeyCode() == KeyboardShortcut.valueOf("TOOL_" + tool.name()).getShortcut()) {
+                        toolsBarActionListener.setSelectedTool(tool);
                         return true;
-                    case KeyEvent.VK_B:
-                        toolsBarActionListener.setSelectedTool(Tool.PENCIL);
-                        return true;
-                    case KeyEvent.VK_R:
-                        toolsBarActionListener.setSelectedTool(Tool.FILL_RECT);
-                        return true;
-                    case KeyEvent.VK_T:
-                        toolsBarActionListener.setSelectedTool(Tool.STROKE_RECT);
-                        return true;
-                    case KeyEvent.VK_C:
-                        toolsBarActionListener.setSelectedTool(Tool.FILL_ELLIPSE);
-                        return true;
-                    case KeyEvent.VK_V:
-                        toolsBarActionListener.setSelectedTool(Tool.STROKE_ELLIPSE);
-                        return true;
-                    case KeyEvent.VK_G:
-                        toolsBarActionListener.toggleGrid();
-                        return true;
+                    }
+                }
+                if (ke.getKeyCode() == KeyboardShortcut.TOGGLE_GRID.getShortcut()) {
+                    toolsBarActionListener.toggleGrid();
+                    return true;
                 }
                 return false;
             }
