@@ -147,6 +147,7 @@ public class SNESTile extends JFrame {
         drawingPane.setMinimumSize(new Dimension(0, 100));
         drawingPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         drawingPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        drawingPane.addMouseWheelListener(drawingPanel);
         split.setTopComponent(drawingPane);
         
         palettePanel = new PalettePanel();
