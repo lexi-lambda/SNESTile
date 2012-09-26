@@ -86,11 +86,14 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     public void setPixelColor(Point location, byte index) {
         Color color = palette.getColor(index);
-        buffer.setRGB(location.x, location.y, color.getRGB());
         
-        int tile = location.x/8 + (location.y / 8)*16;
-        int pixel = location.x%8 + (location.y%8)*8;
-        data[tile*64 + pixel] = index;
+        try {
+            buffer.setRGB(location.x, location.y, color.getRGB());
+
+            int tile = location.x/8 + (location.y / 8)*16;
+            int pixel = location.x%8 + (location.y%8)*8;
+            data[tile*64 + pixel] = index;
+        } catch (ArrayIndexOutOfBoundsException ex) {}
         
         repaint();
     }
