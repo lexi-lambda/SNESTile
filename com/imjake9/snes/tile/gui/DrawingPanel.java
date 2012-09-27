@@ -1,6 +1,6 @@
 package com.imjake9.snes.tile.gui;
 
-import com.imjake9.snes.tile.DataConverter;
+import com.imjake9.snes.tile.data.DataConverter;
 import com.imjake9.snes.tile.SNESTile;
 import com.imjake9.snes.tile.data.SNESImage;
 import com.imjake9.snes.tile.utils.GuiUtils;

@@ -1,4 +1,4 @@
-package com.imjake9.snes.tile;
+package com.imjake9.snes.tile.data;
 
 
 public class DataConverter {
