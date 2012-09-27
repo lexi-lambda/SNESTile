@@ -388,7 +388,45 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
             }
         },
-        FILL_ELLIPSE("Fill Ellipse"),
+        FILL_ELLIPSE("Fill Ellipse") {
+            private Point ellipseStart;
+            @Override
+            public void mouseDown(Point location) {
+                ellipseStart = new Point(location.x - 1, location.y - 1);
+            }
+            @Override
+            public void mouseDragged(Point location) {
+                DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+                PalettePanel palette = SNESTile.getInstance().getPalettePanel();
+                panel.clearOverlay();
+                Graphics2D g = panel.getOverlay();
+                Rectangle rect = getDrawableRect(ellipseStart, location);
+                g.setColor(palette.getColor(palette.getCurrentColor()));
+                g.fillOval(rect.x, rect.y, rect.width, rect.height);
+                panel.repaint();
+            }
+            @Override
+            public void mouseUp(Point location) {
+                DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+                PalettePanel palette = SNESTile.getInstance().getPalettePanel();
+                panel.clearOverlay();
+                Map<Point, Pair<Byte, Byte>> actionMap = new HashMap<Point, Pair<Byte, Byte>>();
+                Rectangle rect = getDrawableRect(ellipseStart, location);
+                for (int i = rect.x; i < rect.x + rect.width + 1; i++) {
+                    for (int j = rect.y; j < rect.y + rect.height + 1; j++) {
+                        Point p = new Point(i, j);
+                        if (!actionMap.containsKey(p) && p.x >= 0 && p.y >= 0)
+                            actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getCurrentColor()));
+                    }
+                }
+                Graphics2D g = panel.image.getImage().createGraphics();
+                g.setColor(palette.getColor(palette.getCurrentColor()));
+                g.fillOval(rect.x, rect.y, rect.width, rect.height);
+                panel.image.commitChanges();
+                panel.repaint();
+                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
+            }
+        },
         STROKE_ELLIPSE("Stroke Ellipse");
         
         private static Rectangle getDrawableRect(Point a, Point b) {
