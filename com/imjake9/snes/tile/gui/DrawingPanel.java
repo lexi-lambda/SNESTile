@@ -2,6 +2,7 @@ package com.imjake9.snes.tile.gui;
 
 import com.imjake9.snes.tile.DataConverter;
 import com.imjake9.snes.tile.SNESTile;
+import com.imjake9.snes.tile.data.SNESImage;
 import com.imjake9.snes.tile.utils.GuiUtils;
 import com.imjake9.snes.tile.utils.Pair;
 import java.awt.AlphaComposite;
@@ -31,10 +32,9 @@ import javax.swing.undo.AbstractUndoableEdit;
 
 public class DrawingPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, Scrollable {
     
-    private BufferedImage buffer;
+    private SNESImage image;
     private BufferedImage overlay;
     private PalettePanel palette;
-    private byte[] data;
     private int scalingFactor = 2;
     private Tool currentTool = Tool.PENCIL;
     private boolean gridEnabled;
@@ -51,12 +51,12 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     }
     
     public void setData(byte[] data) {
-        this.data = DataConverter.fromSNES4BPP(data);
+        image = new SNESImage(DataConverter.fromSNES4BPP(data));
         repaintAll();
     }
     
     public byte[] getData() {
-        return DataConverter.toSNES4BPP(data);
+        return DataConverter.toSNES4BPP(image.getData());
     }
     
     public int getScalingFactor() {
@@ -86,22 +86,12 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     public void setPixelColor(Point location, byte index) {
         Color color = palette.getColor(index);
-        
-        try {
-            buffer.setRGB(location.x, location.y, color.getRGB());
-
-            int tile = location.x/8 + (location.y / 8)*16;
-            int pixel = location.x%8 + (location.y%8)*8;
-            data[tile*64 + pixel] = index;
-        } catch (ArrayIndexOutOfBoundsException ex) {}
-        
+        image.setRGB(location.x, location.y, color.getRGB());
         repaint();
     }
     
     private byte getPixelColor(Point location) {
-        int tile = location.x/8 + (location.y / 8)*16;
-        int pixel = location.x%8 + (location.y%8)*8;
-        return data[tile*64 + pixel];
+        return image.getIndexForColor(new Color(image.getImage().getRGB(location.x, location.y)));
     }
     
     public Graphics2D getOverlay() {
@@ -122,65 +112,45 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
         
-        if (palette == null || data == null || buffer == null || overlay == null) {
+        if (palette == null || image == null || image.getImage() == null || overlay == null) {
             return;
         }
         
-        g.drawImage(buffer, 0, 0, buffer.getWidth() * scalingFactor, buffer.getHeight() * scalingFactor, null);
+        g.drawImage(image.getImage(), 0, 0, image.getImage().getWidth() * scalingFactor, image.getImage().getHeight() * scalingFactor, null);
         g.drawImage(overlay, 0, 0, overlay.getWidth() * scalingFactor, overlay.getHeight() * scalingFactor, null);
         
         if (gridEnabled) {
             int interval = scalingFactor > 8 ? 4
                          : scalingFactor > 4 ? 8
                                              : 16;
-            for (int i = 0; i < buffer.getWidth() * scalingFactor; i += interval * scalingFactor) {
+            for (int i = 0; i < image.getImage().getWidth() * scalingFactor; i += interval * scalingFactor) {
                 if (i % (16 * scalingFactor) == 0) {
                     g.setColor(new Color(0xFFFFFFFF, true));
                 } else {
                     g.setColor(new Color(0x7FFFFFFF, true));
                 }
-                g.drawLine(i, 0, i, buffer.getHeight() * scalingFactor);
+                g.drawLine(i, 0, i, image.getImage().getHeight() * scalingFactor);
             }
-            for (int i = 0; i < buffer.getHeight() * scalingFactor; i += interval * scalingFactor) {
+            for (int i = 0; i < image.getImage().getHeight() * scalingFactor; i += interval * scalingFactor) {
                 if (i % (16 * scalingFactor) == 0) {
                     g.setColor(new Color(0xFFFFFFFF, true));
                 } else {
                     g.setColor(new Color(0x7FFFFFFF, true));
                 }
-                g.drawLine(0, i, buffer.getWidth() * scalingFactor, i);
+                g.drawLine(0, i, image.getImage().getWidth() * scalingFactor, i);
             }
         }
     }
     
     public void repaintAll() {
-        if (data == null) {
-            return;
-        }
         Dimension size = recalculatePreferredSize();
-        buffer = new BufferedImage(size.width / scalingFactor, size.height / scalingFactor, BufferedImage.TYPE_INT_RGB);
-        overlay = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        
-        int rowPos = 0, colPos = 0;
-        for (int i = 0; i < data.length; i++) {
-            int tileRow = (i % 64) / 8;
-            int tileCol = i % 8;
-            
-            if (i != 0 && tileRow == 0 && tileCol == 0) {
-                colPos += 8;
-                if (colPos > 15 * 8) {
-                    colPos = 0;
-                    rowPos += 8;
-                }
-            }
-            
-            buffer.setRGB(colPos + tileCol, rowPos + tileRow, palette.getColor(data[i]).getRGB());
-        }
-        
+        image.setPalette(palette.getPalette());
+        overlay = new BufferedImage(image.getImage().getWidth(), image.getImage().getHeight(), BufferedImage.TYPE_INT_ARGB);
         repaint();
     }
     
     private Dimension recalculatePreferredSize() {
-        Dimension size = new Dimension(8 * 16 * scalingFactor, (data.length/(8 * 16) + 7) / 8 * 8 * scalingFactor);
+        Dimension size = new Dimension(8 * 16 * scalingFactor, (image.getData().length/(8 * 16) + 7) / 8 * 8 * scalingFactor);
         setPreferredSize(size);
         JViewport viewport = (JViewport) getParent();
         viewport.doLayout();

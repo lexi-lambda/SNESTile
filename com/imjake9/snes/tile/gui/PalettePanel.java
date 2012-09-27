@@ -103,6 +103,10 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
         return palettes[currentPalette][index];
     }
     
+    public Color[] getPalette() {
+        return palettes[currentPalette];
+    }
+    
     private void setPalettesData(byte[] data) {
         if (data == null) {
             palettes = null;

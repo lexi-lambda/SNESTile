@@ -129,4 +129,21 @@ public class SNESImage {
         return new IndexColorModel(4, 16, r, g, b);
     }
     
+    /**
+     * Sets the RGB value of a pixel directly. This affects both the buffer
+     * and the underlying data. Note that you must pass an RGB actually specified
+     * in the palette, or you may cause glitches and inconsistencies.
+     * @param x
+     * @param y
+     * @param rgb 
+     */
+    public void setRGB(int x, int y, int rgb) {
+        try {
+            buffer.setRGB(x, y, rgb);
+            int tile = x/8 + (y / 8)*16;
+            int pixel = x%8 + (y%8)*8;
+            rawData[tile*64 + pixel] = getIndexForColor(new Color(rgb));
+        } catch (ArrayIndexOutOfBoundsException ex) {}
+    }
+    
 }
