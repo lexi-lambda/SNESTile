@@ -11,11 +11,13 @@ import java.awt.image.IndexColorModel;
 public class SNESImage {
     
     private byte[] rawData;
-    private Color[] palette = new Color[16];
+    private Palette palette;
     {
+        Color[] colors = new Color[16];
         for (int i = 0; i < 16; i++) {
-            palette[i] = new Color(0x111111 * i);
+            colors[i] = new Color(0x111111 * i);
         }
+        palette = new Palette(colors);
     }
     private BufferedImage buffer;
     
@@ -46,7 +48,7 @@ public class SNESImage {
                 }
             }
             
-            buffer.setRGB(colPos + tileCol, rowPos + tileRow, palette[rawData[i]].getRGB());
+            buffer.setRGB(colPos + tileCol, rowPos + tileRow, palette.getColor(rawData[i]).getRGB());
         }
     }
     
@@ -69,11 +71,11 @@ public class SNESImage {
         return rawData;
     }
     
-    public Color[] getPalette() {
+    public Palette getPalette() {
         return palette;
     }
     
-    public void setPalette(Color[] palette) {
+    public void setPalette(Palette palette) {
         this.palette = palette;
         rebuildBuffer();
     }
@@ -84,8 +86,8 @@ public class SNESImage {
      * @return index
      */
     public byte getIndexForColor(Color color) {
-        for (int i = 0; i < palette.length; i++) {
-            if (palette[i].equals(color))
+        for (byte i = 0; i < palette.size(); i++) {
+            if (palette.getColor(i).equals(color))
                 return (byte) i;
         }
         return 0;
@@ -120,8 +122,8 @@ public class SNESImage {
      */
     private IndexColorModel getColorModel() {
         byte[] r = new byte[16], g = new byte[16], b = new byte[16];
-        for (int i = 0; i < 16; i++) {
-            Color color = palette[i];
+        for (byte i = 0; i < 16; i++) {
+            Color color = palette.getColor(i);
             r[i] = (byte) color.getRed();
             g[i] = (byte) color.getGreen();
             b[i] = (byte) color.getBlue();

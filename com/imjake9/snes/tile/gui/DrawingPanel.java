@@ -1,7 +1,7 @@
 package com.imjake9.snes.tile.gui;
 
-import com.imjake9.snes.tile.data.DataConverter;
 import com.imjake9.snes.tile.SNESTile;
+import com.imjake9.snes.tile.data.DataConverter;
 import com.imjake9.snes.tile.data.SNESImage;
 import com.imjake9.snes.tile.utils.GuiUtils;
 import com.imjake9.snes.tile.utils.Pair;
@@ -85,7 +85,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     }
     
     public void setPixelColor(Point location, byte index) {
-        Color color = palette.getColor(index);
+        Color color = palette.getPaletteSet().getSelectedPalette().getColor(index);
         image.setRGB(location.x, location.y, color.getRGB());
         repaint();
     }
@@ -144,7 +144,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     public void repaintAll() {
         Dimension size = recalculatePreferredSize();
-        image.setPalette(palette.getPalette());
+        image.setPalette(palette.getPaletteSet().getSelectedPalette());
         overlay = new BufferedImage(image.getImage().getWidth(), image.getImage().getHeight(), BufferedImage.TYPE_INT_ARGB);
         repaint();
     }
@@ -196,7 +196,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         if (GuiUtils.isLeftClick(me)) {
             currentTool.mouseClicked(getSelectedPixel(me));
         } else if (GuiUtils.isRightClick(me)) {
-            palette.setCurrentColor(getPixelColor(getSelectedPixel(me)));
+            palette.getPaletteSet().setSelectedColor(getPixelColor(getSelectedPixel(me)));
         }
     }
 
@@ -291,8 +291,8 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
             public void mouseDragged(Point location) {
                 SNESTile window = SNESTile.getInstance();
                 if (!actionMap.containsKey(location))
-                    actionMap.put(location, new Pair<Byte, Byte>(window.getDrawingPanel().getPixelColor(location), window.getPalettePanel().getCurrentColor()));
-                window.getDrawingPanel().setPixelColor(location, window.getPalettePanel().getCurrentColor());
+                    actionMap.put(location, new Pair<Byte, Byte>(window.getDrawingPanel().getPixelColor(location), window.getPalettePanel().getPaletteSet().getSelectedColorIndex()));
+                window.getDrawingPanel().setPixelColor(location, window.getPalettePanel().getPaletteSet().getSelectedColorIndex());
             }
             @Override
             public void mouseUp(Point location) {
@@ -313,7 +313,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 panel.clearOverlay();
                 Graphics2D g = panel.getOverlay();
                 Rectangle rect = getDrawableRect(rectStart, location);
-                g.setColor(palette.getColor(palette.getCurrentColor()));
+                g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.fillRect(rect.x, rect.y, rect.width + 1, rect.height + 1);
                 panel.repaint();
             }
@@ -328,8 +328,8 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                     for (int j = rect.y; j < rect.y + rect.height + 1; j++) {
                         Point p = new Point(i, j);
                         if (!actionMap.containsKey(p))
-                            actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getCurrentColor()));
-                        panel.setPixelColor(p, palette.getCurrentColor());
+                            actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getPaletteSet().getSelectedColorIndex()));
+                        panel.setPixelColor(p, palette.getPaletteSet().getSelectedColorIndex());
                     }
                 }
                 panel.repaint();
@@ -349,7 +349,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 panel.clearOverlay();
                 Graphics2D g = panel.getOverlay();
                 Rectangle rect = getDrawableRect(rectStart, location);
-                g.setColor(palette.getColor(palette.getCurrentColor()));
+                g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.drawRect(rect.x, rect.y, rect.width, rect.height);
                 panel.repaint();
             }
@@ -364,26 +364,26 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                     Point p1 = new Point(i, rect.y);
                     Point p2 = new Point(i, rect.y + rect.height);
                     if (!actionMap.containsKey(p1))
-                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getCurrentColor()));
+                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getPaletteSet().getSelectedColorIndex()));
                     if (!actionMap.containsKey(p2))
-                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getCurrentColor()));
-                    panel.setPixelColor(p1, palette.getCurrentColor());
-                    panel.setPixelColor(p2, palette.getCurrentColor());
+                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getPaletteSet().getSelectedColorIndex()));
+                    panel.setPixelColor(p1, palette.getPaletteSet().getSelectedColorIndex());
+                    panel.setPixelColor(p2, palette.getPaletteSet().getSelectedColorIndex());
                 }
                 for (int i = rect.y; i < rect.y + rect.height; i++) {
                     Point p1 = new Point(rect.x, i);
                     Point p2 = new Point(rect.x + rect.width, i);
                     if (!actionMap.containsKey(p1))
-                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getCurrentColor()));
+                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getPaletteSet().getSelectedColorIndex()));
                     if (!actionMap.containsKey(p2))
-                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getCurrentColor()));
-                    panel.setPixelColor(p1, palette.getCurrentColor());
-                    panel.setPixelColor(p2, palette.getCurrentColor());
+                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getPaletteSet().getSelectedColorIndex()));
+                    panel.setPixelColor(p1, palette.getPaletteSet().getSelectedColorIndex());
+                    panel.setPixelColor(p2, palette.getPaletteSet().getSelectedColorIndex());
                 }
                 Point p = new Point(rect.x + rect.width, rect.y + rect.height);
                 if (!actionMap.containsKey(p))
-                    actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getCurrentColor()));
-                panel.setPixelColor(p, palette.getCurrentColor());
+                    actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getPaletteSet().getSelectedColorIndex()));
+                panel.setPixelColor(p, palette.getPaletteSet().getSelectedColorIndex());
                 panel.repaint();
                 SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
             }
@@ -401,7 +401,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 panel.clearOverlay();
                 Graphics2D g = panel.getOverlay();
                 Rectangle rect = getDrawableRect(ellipseStart, location);
-                g.setColor(palette.getColor(palette.getCurrentColor()));
+                g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.fillOval(rect.x, rect.y, rect.width, rect.height);
                 panel.repaint();
             }
@@ -416,11 +416,11 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                     for (int j = rect.y; j < rect.y + rect.height + 1; j++) {
                         Point p = new Point(i, j);
                         if (!actionMap.containsKey(p) && p.x >= 0 && p.y >= 0)
-                            actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getCurrentColor()));
+                            actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getPaletteSet().getSelectedColorIndex()));
                     }
                 }
                 Graphics2D g = panel.image.getImage().createGraphics();
-                g.setColor(palette.getColor(palette.getCurrentColor()));
+                g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.fillOval(rect.x, rect.y, rect.width, rect.height);
                 panel.image.commitChanges();
                 panel.repaint();

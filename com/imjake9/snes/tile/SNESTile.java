@@ -2,6 +2,7 @@ package com.imjake9.snes.tile;
 
 import com.imjake9.snes.tile.PreferencesManager.KeyboardShortcut;
 import com.imjake9.snes.tile.PreferencesManager.PrefKey;
+import com.imjake9.snes.tile.data.PaletteSet;
 import com.imjake9.snes.tile.gui.DrawingPanel;
 import com.imjake9.snes.tile.gui.DrawingPanel.Tool;
 import com.imjake9.snes.tile.gui.PalettePanel;
@@ -407,7 +408,7 @@ public class SNESTile extends JFrame {
                     JOptionPane.showMessageDialog(window, "The selected file is not readable. You may not have permission to read from the selected location.", "Invalid File", JOptionPane.ERROR_MESSAGE);
                 }
                 try {
-                    palettePanel.loadPalette(file);
+                    palettePanel.setPaletteSet(PaletteSet.loadFile(file));
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(window, "Error while reading palette.", "Read Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -419,7 +420,7 @@ public class SNESTile extends JFrame {
         item.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                palettePanel.savePaletteAsDefault();
+                PreferencesManager.set(PrefKey.DEFAULT_PALETTES, palettePanel.getPaletteSet().toByteArray(PaletteSet.PaletteFormat.PAL));
             }
         });
         menu.add(item);

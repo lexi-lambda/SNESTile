@@ -11,6 +11,10 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class PaletteSet {
     
+    public static enum PaletteFormat {
+        PAL;
+    }
+    
     private Palette[] palettes;
     private byte selectedPalette;
     private byte selectedColor;
@@ -24,21 +28,7 @@ public class PaletteSet {
     public static PaletteSet loadFile(File f) throws IOException {
         String filetype = FilenameUtils.getExtension(f.getName());
         byte[] data = FileUtils.readFileToByteArray(f);
-        Palette[] palettes = null;
-        
-        // Handle various file formats
-        if (filetype.equalsIgnoreCase("pal")) {
-            palettes = new Palette[data.length / 48];
-            for (int i = 0; i < palettes.length; i++) {
-                Color[] colors = new Color[16];
-                for (int j = 0; j < colors.length; j++) {
-                    colors[j] = new Color((int) data[i*3*16 + j*3] & 0xFF, (int) data[i*3*16 + j*3 + 1] & 0xFF, (int) data[i*3*16 + j*3 + 2] & 0xFF);
-                }
-                palettes[i] = new Palette(colors);
-            }
-        }
-        
-        return new PaletteSet(palettes);
+        return new PaletteSet(data, PaletteFormat.valueOf(filetype.toUpperCase()));
     }
     
     /**
@@ -47,6 +37,48 @@ public class PaletteSet {
      */
     public PaletteSet(Palette[] palettes) {
         this.palettes = palettes;
+    }
+    
+    /**
+     * Creates a palette set from a byte array of raw data and a palette format.
+     * @param data
+     * @param format 
+     */
+    public PaletteSet(byte[] data, PaletteFormat format) {
+        switch (format) {
+        case PAL:
+            palettes = new Palette[data.length / 48];
+            for (int i = 0; i < palettes.length; i++) {
+                Color[] colors = new Color[16];
+                for (int j = 0; j < colors.length; j++) {
+                    colors[j] = new Color((int) data[i*3*16 + j*3] & 0xFF, (int) data[i*3*16 + j*3 + 1] & 0xFF, (int) data[i*3*16 + j*3 + 2] & 0xFF);
+                }
+                palettes[i] = new Palette(colors);
+            }
+            break;
+        }
+    }
+    
+    /**
+     * Converts a palette set into raw data using a palette format.
+     * @param format
+     * @return data
+     */
+    public byte[] toByteArray(PaletteFormat format) {
+        switch (format) {
+        case PAL:
+            byte[] data = new byte[size() * 16 * 3];
+            for (byte i = 0; i < size(); i++) {
+                for (byte j = 0; j < 16; j++) {
+                    Color color = getPalette(i).getColor(j);
+                    data[i*3*16 + j*3] = (byte) color.getRed();
+                    data[i*3*16 + j*3 + 1] = (byte) color.getGreen();
+                    data[i*3*16 + j*3 + 2] = (byte) color.getBlue();
+                }
+            }
+            return data;
+        }
+        return null;
     }
     
     /**
@@ -83,6 +115,14 @@ public class PaletteSet {
     }
     
     /**
+     * Gets the index of the current palette.
+     * @return 
+     */
+    public byte getSelectedPaletteIndex() {
+        return selectedPalette;
+    }
+    
+    /**
      * Sets the currently selected color.
      * @param index 
      */
@@ -96,6 +136,14 @@ public class PaletteSet {
      */
     public Color getSelectedColor() {
         return getSelectedPalette().getColor(selectedColor);
+    }
+    
+    /**
+     * Gets the index of the current color.
+     * @return 
+     */
+    public byte getSelectedColorIndex() {
+        return selectedColor;
     }
     
 }

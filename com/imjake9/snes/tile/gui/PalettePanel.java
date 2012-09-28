@@ -2,6 +2,8 @@ package com.imjake9.snes.tile.gui;
 
 import com.imjake9.snes.tile.PreferencesManager;
 import com.imjake9.snes.tile.PreferencesManager.PrefKey;
+import com.imjake9.snes.tile.data.Palette;
+import com.imjake9.snes.tile.data.PaletteSet;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -10,24 +12,21 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
-import java.io.IOException;
 import javax.swing.JPanel;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 
 
 public class PalettePanel extends JPanel implements MouseListener, Scrollable {
     
     private DrawingPanel drawingPanel;
-    private Color[][] palettes;
-    private int currentPalette;
-    private byte currentColor;
+    private PaletteSet palettes;
     
     public PalettePanel() {
-        setPalettesData(PreferencesManager.getByteArray(PrefKey.DEFAULT_PALETTES));
+        byte[] savedPalette = PreferencesManager.getByteArray(PrefKey.DEFAULT_PALETTES);
+        if (savedPalette != null) {
+            palettes = new PaletteSet(savedPalette, PaletteSet.PaletteFormat.PAL);
+        }
         addMouseListener(this);
     }
     
@@ -35,28 +34,13 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
         this.drawingPanel = drawingPanel;
     }
     
-    public void setCurrentColor(byte index) {
-        currentColor = index;
+    public PaletteSet getPaletteSet() {
+        return palettes;
+    }
+    
+    public void setPaletteSet(PaletteSet palettes) {
+        this.palettes = palettes;
         repaint();
-    }
-    
-    public byte getCurrentColor() {
-        return currentColor;
-    }
-    
-    public void loadPalette(File f) throws IOException {
-        String filetype = FilenameUtils.getExtension(f.getName());
-        byte[] data = FileUtils.readFileToByteArray(f);
-        if (filetype.equalsIgnoreCase("pal")) {
-            setPalettesData(data);
-        }
-        currentPalette = 0;
-        repaint();
-        drawingPanel.repaintAll();
-    }
-    
-    public void savePaletteAsDefault() {
-        PreferencesManager.set(PrefKey.DEFAULT_PALETTES, getPalettesData());
     }
     
     @Override
@@ -70,18 +54,18 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
         }
         
         int squareSize = getWidth() / 16;
-        for (int i = 0; i < palettes.length; i++) {
-            for (int j = 0; j < 16; j++) {
-                g.setColor(palettes[i][j]);
+        for (byte i = 0; i < palettes.size(); i++) {
+            for (byte j = 0; j < 16; j++) {
+                g.setColor(palettes.getPalette(i).getColor(j));
                 g.fillRect(j * squareSize, i * squareSize, squareSize, squareSize);
             }
         }
         ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Color.WHITE);
-        g.drawRect(0, currentPalette * squareSize, 16*squareSize - 1, squareSize - 1);
-        g.fillOval(squareSize*currentColor + squareSize/2 - 4, squareSize*currentPalette + squareSize/2 - 4, 7, 7);
+        g.drawRect(0, palettes.getSelectedPaletteIndex() * squareSize, 16*squareSize - 1, squareSize - 1);
+        g.fillOval(squareSize*palettes.getSelectedColorIndex() + squareSize/2 - 4, squareSize*palettes.getSelectedPaletteIndex() + squareSize/2 - 4, 7, 7);
         g.setColor(Color.BLACK);
-        g.drawOval(squareSize*currentColor + squareSize/2 - 5, squareSize*currentPalette + squareSize/2 - 5, 8, 8);
+        g.drawOval(squareSize*palettes.getSelectedColorIndex() + squareSize/2 - 5, squareSize*palettes.getSelectedPaletteIndex() + squareSize/2 - 5, 8, 8);
         ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
     }
     
@@ -89,67 +73,28 @@ public class PalettePanel extends JPanel implements MouseListener, Scrollable {
         if (palettes == null) {
             return new Dimension(0, 0);
         }
-        Dimension size = new Dimension(getWidth(), (getWidth() / 16) * palettes.length);
+        Dimension size = new Dimension(getWidth(), (getWidth() / 16) * palettes.size());
         setPreferredSize(size);
         JViewport viewport = (JViewport) getParent();
         viewport.doLayout();
         return size;
     }
     
-    public Color getColor(byte index) {
-        if (palettes == null) {
-            return Color.getHSBColor(index / 16f, 1, 1);
-        }
-        return palettes[currentPalette][index];
-    }
-    
-    public Color[] getPalette() {
-        return palettes[currentPalette];
-    }
-    
-    private void setPalettesData(byte[] data) {
-        if (data == null) {
-            palettes = null;
-            return;
-        }
-        palettes = new Color[data.length / (3 * 16)][16];
-        for (int i = 0; i < palettes.length; i++) {
-            for (int j = 0; j < 16; j++) {
-                palettes[i][j] = new Color((int) data[i*3*16 + j*3] & 0xFF, (int) data[i*3*16 + j*3 + 1] & 0xFF, (int) data[i*3*16 + j*3 + 2] & 0xFF);
-            }
-        }
-    }
-    
-    private byte[] getPalettesData() {
-        if (palettes == null) {
-            return null;
-        }
-        byte[] data = new byte[palettes.length * 16 * 3];
-        for (int i = 0; i < palettes.length; i++) {
-            for (int j = 0; j < 16; j++) {
-                data[i*3*16 + j*3] = (byte) palettes[i][j].getRed();
-                data[i*3*16 + j*3 + 1] = (byte) palettes[i][j].getGreen();
-                data[i*3*16 + j*3 + 2] = (byte) palettes[i][j].getBlue();
-            }
-        }
-        return data;
-    }
-    
     
     @Override
     public void mouseClicked(MouseEvent me) {
         int squareSize = getWidth() / 16;
-        int oldPalette = currentPalette;
-        currentPalette = me.getY() / squareSize;
-        if (currentPalette > palettes.length) {
-            currentPalette = palettes.length - 1;
+        Palette oldPalette = palettes.getSelectedPalette();
+        palettes.setSelectedPalette((byte) (me.getY() / squareSize));
+        if (palettes.getSelectedPaletteIndex() > palettes.size()) {
+            palettes.setSelectedPalette((byte) (palettes.size() - 1));
         }
-        currentColor = (byte) (me.getX() / squareSize);
-        if (currentColor > 0xF) {
-            currentColor = 0xF;
+        palettes.setSelectedColor((byte) (me.getX() / squareSize));
+        if (palettes.getSelectedColorIndex() > 0xF) {
+            palettes.setSelectedColor((byte) 0xF);
         }
         repaint();
-        if (oldPalette != currentPalette) {
+        if (oldPalette != palettes.getSelectedPalette()) {
             drawingPanel.repaintAll();
         }
     }
