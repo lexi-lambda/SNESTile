@@ -197,6 +197,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
             currentTool.mouseClicked(getSelectedPixel(me));
         } else if (GuiUtils.isRightClick(me)) {
             palette.getPaletteSet().setSelectedColor(getPixelColor(getSelectedPixel(me)));
+            palette.repaint();
         }
     }
 
