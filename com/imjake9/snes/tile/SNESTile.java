@@ -180,71 +180,72 @@ public class SNESTile extends JFrame {
         toolsBar.setFloatable(false);
         toolsBar.setMargin(new Insets(3, 1, 1, 1));
         
-        JButton marqueeButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/marquee.png")));
-        marqueeButton.setName("MARQUEE");
-        toolsBar.add(marqueeButton);
+        toolsBarActionListener = new ToolsBarActionListener();
+        
+        JButton button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/marquee.png")));
+        button.setName("MARQUEE");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
         
         toolsBar.add(Box.createVerticalStrut(4));
         
-        JButton pencilButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/pencil.png")));
-        pencilButton.setName("PENCIL");
-        pencilButton.setSelected(true);
-        toolsBar.add(pencilButton);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/pencil.png")));
+        button.setName("PENCIL");
+        button.addActionListener(toolsBarActionListener);
+        toolsBarActionListener.setSelectedDirect(button);
+        button.setSelected(true);
+        toolsBar.add(button);
         
         toolsBar.add(Box.createVerticalStrut(4));
         
-        JButton filledRectButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/filled-rect.png")));
-        filledRectButton.setName("FILL_RECT");
-        toolsBar.add(filledRectButton);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/filled-rect.png")));
+        button.setName("FILL_RECT");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
         
         toolsBar.add(Box.createVerticalStrut(4));
         
-        JButton emptyRectButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/empty-rect.png")));
-        emptyRectButton.setName("STROKE_RECT");
-        toolsBar.add(emptyRectButton);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/empty-rect.png")));
+        button.setName("STROKE_RECT");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
         
         toolsBar.add(Box.createVerticalStrut(4));
         
-        JButton filledEllipseButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/filled-ellipse.png")));
-        filledEllipseButton.setName("FILL_ELLIPSE");
-        toolsBar.add(filledEllipseButton);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/filled-ellipse.png")));
+        button.setName("FILL_ELLIPSE");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
         
         toolsBar.add(Box.createVerticalStrut(4));
         
-        JButton emptyEllipseButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/empty-ellipse.png")));
-        emptyEllipseButton.setName("STROKE_ELLIPSE");
-        toolsBar.add(emptyEllipseButton);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/empty-ellipse.png")));
+        button.setName("STROKE_ELLIPSE");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
         
         toolsBar.addSeparator();
         
-        JButton zoomOutButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/zoom-out.png")));
-        zoomOutButton.setName("ZOOM_OUT");
-        toolsBar.add(zoomOutButton);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/zoom-out.png")));
+        button.setName("ZOOM_OUT");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
         
         toolsBar.add(Box.createVerticalStrut(4));
         
-        JButton zoomInButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/zoom-in.png")));
-        zoomInButton.setName("ZOOM_IN");
-        toolsBar.add(zoomInButton);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/zoom-in.png")));
+        button.setName("ZOOM_IN");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
         
         toolsBar.add(Box.createVerticalStrut(4));
         
-        JButton gridButton = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/grid.png")));
-        gridButton.setName("GRID");
-        gridButton.setSelected(PreferencesManager.getBoolean(PrefKey.GRID_ENABLED, false));
-        drawingPanel.setGridEnabled(gridButton.isSelected());
-        toolsBar.add(gridButton);
-        
-        toolsBarActionListener = new ToolsBarActionListener(pencilButton);
-        marqueeButton.addActionListener(toolsBarActionListener);
-        pencilButton.addActionListener(toolsBarActionListener);
-        filledRectButton.addActionListener(toolsBarActionListener);
-        emptyRectButton.addActionListener(toolsBarActionListener);
-        filledEllipseButton.addActionListener(toolsBarActionListener);
-        emptyEllipseButton.addActionListener(toolsBarActionListener);
-        zoomOutButton.addActionListener(toolsBarActionListener);
-        zoomInButton.addActionListener(toolsBarActionListener);
-        gridButton.addActionListener(toolsBarActionListener);
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/grid.png")));
+        button.setName("GRID");
+        button.addActionListener(toolsBarActionListener);
+        button.setSelected(PreferencesManager.getBoolean(PrefKey.GRID_ENABLED, false));
+        drawingPanel.setGridEnabled(button.isSelected());
+        toolsBar.add(button);
         
         return toolsBar;
     }
@@ -433,7 +434,7 @@ public class SNESTile extends JFrame {
         
         private JButton selected;
         
-        public ToolsBarActionListener(JButton selected) {
+        public void setSelectedDirect(JButton selected) {
             this.selected = selected;
         }
         
