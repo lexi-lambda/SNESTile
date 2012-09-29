@@ -55,10 +55,12 @@ public class PreferencesManager {
     public static enum KeyboardShortcut {
         TOOL_MARQUEE(KeyEvent.VK_M, "Marquee Tool"),
         TOOL_PENCIL(KeyEvent.VK_B, "Pencil Tool"),
+        TOOL_LINE(KeyEvent.VK_N, "Line Tool"),
         TOOL_FILL_RECT(KeyEvent.VK_R, "Fill Rectangle Tool"),
         TOOL_STROKE_RECT(KeyEvent.VK_T, "Stroke Rectangle Tool"),
         TOOL_FILL_ELLIPSE(KeyEvent.VK_C, "Fill Ellipse Tool"),
         TOOL_STROKE_ELLIPSE(KeyEvent.VK_V, "Stroke Ellipse Tool"),
+        TOOL_FILL(KeyEvent.VK_F, "Fill Tool"),
         TOGGLE_GRID(KeyEvent.VK_G, "Toggle Grid");
         
         private int def;

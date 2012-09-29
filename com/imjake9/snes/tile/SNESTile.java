@@ -231,6 +231,13 @@ public class SNESTile extends JFrame {
         button.addActionListener(toolsBarActionListener);
         toolsBar.add(button);
         
+        toolsBar.add(Box.createVerticalStrut(4));
+        
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/paint-bucket.png")));
+        button.setName("FILL");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
+        
         toolsBar.addSeparator();
         
         button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/zoom-out.png")));

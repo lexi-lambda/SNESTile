@@ -20,6 +20,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.swing.JPanel;
@@ -506,6 +507,31 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 g.drawOval(rect.x, rect.y, rect.width, rect.height);
                 panel.image.commitChanges();
                 panel.repaint();
+                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
+            }
+        },
+        FILL("Fill") {
+            @Override
+            public void mouseClicked(Point location) {
+                DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+                PalettePanel palette = SNESTile.getInstance().getPalettePanel();
+                byte target = panel.getPixelColor(location);
+                byte replacement = palette.getPaletteSet().getSelectedColorIndex();
+                LinkedList<Point> openPixels = new LinkedList<Point>();
+                Map<Point, Pair<Byte, Byte>> actionMap = new HashMap<Point, Pair<Byte, Byte>>();
+                openPixels.addFirst(location);
+                Point node;
+                while ((node = openPixels.poll()) != null) {
+                    if (panel.getPixelColor(node) == target) {
+                        panel.setPixelColor(node, replacement);
+                        if (!actionMap.containsKey(node))
+                            actionMap.put(node, new Pair<Byte, Byte>(target, replacement));
+                        openPixels.addFirst(new Point(node.x - 1, node.y));
+                        openPixels.addFirst(new Point(node.x + 1, node.y));
+                        openPixels.addFirst(new Point(node.x, node.y - 1));
+                        openPixels.addFirst(new Point(node.x, node.y + 1));
+                    }
+                }
                 SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
             }
         };
