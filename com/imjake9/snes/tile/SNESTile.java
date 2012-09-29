@@ -198,6 +198,13 @@ public class SNESTile extends JFrame {
         
         toolsBar.add(Box.createVerticalStrut(4));
         
+        button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/line.png")));
+        button.setName("LINE");
+        button.addActionListener(toolsBarActionListener);
+        toolsBar.add(button);
+        
+        toolsBar.add(Box.createVerticalStrut(4));
+        
         button = new JButton(new ImageIcon(getClass().getClassLoader().getResource("images/filled-rect.png")));
         button.setName("FILL_RECT");
         button.addActionListener(toolsBarActionListener);
