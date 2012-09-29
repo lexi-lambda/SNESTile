@@ -91,7 +91,11 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     }
     
     private byte getPixelColor(Point location) {
-        return image.getIndexForColor(new Color(image.getImage().getRGB(location.x, location.y)));
+        try {
+            return image.getIndexForColor(new Color(image.getImage().getRGB(location.x, location.y)));
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            return 0;
+        }
     }
     
     public Graphics2D getOverlay() {
