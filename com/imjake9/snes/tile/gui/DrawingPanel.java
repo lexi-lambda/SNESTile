@@ -12,6 +12,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -26,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
@@ -36,6 +39,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     
     private SNESImage image;
     private Rectangle marqueeRect;
+    private int marqueeOffset = 0;
     private BufferedImage marqueeLayer;
     private PalettePanel palette;
     private int scalingFactor = 2;
@@ -47,6 +51,14 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
         this.addMouseWheelListener(this);
+        
+        new Timer(150, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                marqueeOffset = ++marqueeOffset % 6;
+                if (marqueeRect != null) repaint();
+            }
+        }).start();
     }
     
     public void setPalette(PalettePanel palette) {
@@ -145,7 +157,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
             gm.setColor(Color.BLACK);
             gm.setStroke(new BasicStroke(1));
             gm.drawRect(0, 0, marqueeLayer.getWidth() - 1, marqueeLayer.getHeight() - 1);
-            gm.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10, new float[] {2, 4}, 0));
+            gm.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10, new float[] {2, 4}, marqueeOffset));
             gm.setColor(Color.WHITE);
             gm.drawRect(0, 0, marqueeLayer.getWidth() - 1, marqueeLayer.getHeight() - 1);
             gm.dispose();
