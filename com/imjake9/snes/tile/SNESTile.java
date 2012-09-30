@@ -526,7 +526,9 @@ public class SNESTile extends JFrame {
         
         public void refreshMenuStates() {
             undoItem.setEnabled(undoManager.canUndo());
+            undoItem.setText(undoManager.getUndoPresentationName());
             redoItem.setEnabled(undoManager.canRedo());
+            redoItem.setText(undoManager.getRedoPresentationName());
         }
         
     }
