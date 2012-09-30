@@ -316,9 +316,9 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
             @Override
             public void mouseClicked(Point location) {
                 DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
-                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new SelectAction(panel.marqueeRect, null, "Select None")));
                 panel.marqueeRect = null;
                 panel.repaint();
+                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new SelectAction(oldMarqueeRect, null, "Select None")));
             }
         },
         PENCIL("Pencil") {
