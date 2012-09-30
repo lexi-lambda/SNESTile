@@ -4,6 +4,7 @@ import com.imjake9.snes.tile.utils.Pair;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
@@ -79,6 +80,10 @@ public class SNESImage {
         }
         
         return buffer;
+    }
+    
+    public Dimension getSize() {
+        return new Dimension(buffer.getWidth(), buffer.getHeight());
     }
     
     /**

@@ -101,6 +101,10 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         }
     }
     
+    public Rectangle getClippingMask() {
+        return marqueeRect != null ? marqueeRect : new Rectangle(new Point(), image.getSize());
+    }
+    
     @Override
     public void paintComponent(Graphics g) {
         g.setColor(Color.BLACK);
@@ -326,9 +330,11 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
             @Override
             public void mouseDragged(Point location) {
                 SNESTile window = SNESTile.getInstance();
-                if (!actionMap.containsKey(location))
-                    actionMap.put(location, new Pair<Byte, Byte>(window.getDrawingPanel().getPixelColor(location), window.getPalettePanel().getPaletteSet().getSelectedColorIndex()));
-                window.getDrawingPanel().setPixelColor(location, window.getPalettePanel().getPaletteSet().getSelectedColorIndex());
+                if (window.getDrawingPanel().getClippingMask().contains(location)) {
+                    if (!actionMap.containsKey(location))
+                        actionMap.put(location, new Pair<Byte, Byte>(window.getDrawingPanel().getPixelColor(location), window.getPalettePanel().getPaletteSet().getSelectedColorIndex()));
+                    window.getDrawingPanel().setPixelColor(location, window.getPalettePanel().getPaletteSet().getSelectedColorIndex());
+                }
             }
             @Override
             public void mouseUp(Point location) {
@@ -357,6 +363,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 Graphics2D g = panel.image.createGraphics(true);
+                g.setClip(panel.getClippingMask());
                 g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.drawLine(lineStart.x, lineStart.y, location.x, location.y);
                 Map<Point, Pair<Byte, Byte>> actionMap = panel.image.commitChanges();
@@ -387,6 +394,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 Rectangle rect = getDrawableRect(rectStart, location);
                 Graphics2D g = panel.image.createGraphics(true);
+                g.setClip(panel.getClippingMask());
                 g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.fillRect(rect.x, rect.y, rect.width + 1, rect.height + 1);
                 Map<Point, Pair<Byte, Byte>> actionMap = panel.image.commitChanges();
@@ -417,6 +425,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 Rectangle rect = getDrawableRect(rectStart, location);
                 Graphics2D g = panel.image.createGraphics(true);
+                g.setClip(panel.getClippingMask());
                 g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.drawRect(rect.x, rect.y, rect.width, rect.height);
                 Map<Point, Pair<Byte, Byte>> actionMap = panel.image.commitChanges();
@@ -447,6 +456,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 Rectangle rect = getDrawableRect(ellipseStart, location);
                 Graphics2D g = panel.image.createGraphics(true);
+                g.setClip(panel.getClippingMask());
                 g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.fillOval(rect.x, rect.y, rect.width + 1, rect.height + 1);
                 Map<Point, Pair<Byte, Byte>> actionMap = panel.image.commitChanges();
@@ -477,6 +487,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 Rectangle rect = getDrawableRect(ellipseStart, location);
                 Graphics2D g = panel.image.createGraphics(true);
+                g.setClip(panel.getClippingMask());
                 g.setColor(palette.getPaletteSet().getSelectedColor());
                 g.drawOval(rect.x, rect.y, rect.width, rect.height);
                 Map<Point, Pair<Byte, Byte>> actionMap = panel.image.commitChanges();
@@ -496,7 +507,7 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 openPixels.addFirst(location);
                 Point node;
                 while ((node = openPixels.poll()) != null) {
-                    if (panel.getPixelColor(node) == target) {
+                    if (panel.getPixelColor(node) == target && panel.getClippingMask().contains(node)) {
                         panel.setPixelColor(node, replacement);
                         if (!actionMap.containsKey(node))
                             actionMap.put(node, new Pair<Byte, Byte>(target, replacement));
