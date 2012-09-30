@@ -5,9 +5,8 @@ import com.imjake9.snes.tile.data.DataConverter;
 import com.imjake9.snes.tile.data.SNESImage;
 import com.imjake9.snes.tile.utils.GuiUtils;
 import com.imjake9.snes.tile.utils.Pair;
-import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -29,11 +28,15 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 
 
 public class DrawingPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, Scrollable {
     
     private SNESImage image;
+    private Rectangle marqueeRect;
+    private BufferedImage marqueeLayer;
     private PalettePanel palette;
     private int scalingFactor = 2;
     private Tool currentTool = Tool.PENCIL;
@@ -130,6 +133,19 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 }
                 g.drawLine(0, i, result.getWidth() * scalingFactor, i);
             }
+        }
+        
+        if (marqueeRect != null && marqueeRect.height > 0 && marqueeRect.width > 0) {
+            marqueeLayer = new BufferedImage(marqueeRect.width * scalingFactor, marqueeRect.height * scalingFactor, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D gm = marqueeLayer.createGraphics();
+            gm.setColor(Color.BLACK);
+            gm.setStroke(new BasicStroke(1));
+            gm.drawRect(0, 0, marqueeLayer.getWidth() - 1, marqueeLayer.getHeight() - 1);
+            gm.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10, new float[] {2, 4}, 0));
+            gm.setColor(Color.WHITE);
+            gm.drawRect(0, 0, marqueeLayer.getWidth() - 1, marqueeLayer.getHeight() - 1);
+            gm.dispose();
+            g.drawImage(marqueeLayer, marqueeRect.x * scalingFactor, marqueeRect.y * scalingFactor, null);
         }
     }
     
@@ -271,7 +287,36 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
     }
     
     public static enum Tool {
-        MARQUEE("Marquee"),
+        MARQUEE("Marquee") {
+            private Rectangle oldMarqueeRect;
+            @Override
+            public void mouseDown(Point location) {
+                DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+                oldMarqueeRect = panel.marqueeRect;
+                panel.marqueeRect = new Rectangle(location);
+                panel.repaint();
+            }
+            @Override
+            public void mouseDragged(Point location) {
+                DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+                panel.marqueeRect = getDrawableRect(panel.marqueeRect.getLocation(), location);
+                panel.repaint();
+            }
+            @Override
+            public void mouseUp(Point location) {
+                DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+                if (panel.marqueeRect.width > 0 && panel.marqueeRect.height > 0) {
+                    SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new SelectAction(oldMarqueeRect, panel.marqueeRect)));
+                }
+            }
+            @Override
+            public void mouseClicked(Point location) {
+                DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+                SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new SelectAction(panel.marqueeRect, null, "Select None")));
+                panel.marqueeRect = null;
+                panel.repaint();
+            }
+        },
         PENCIL("Pencil") {
             private Map<Point, Pair<Byte, Byte>> actionMap;
             @Override
@@ -522,6 +567,45 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
         @Override
         public String getPresentationName() {
             return tool == null ? "Draw" : tool.getDisplayName();
+        }
+        
+    }
+    
+    public static class SelectAction extends AbstractUndoableEdit {
+        
+        protected final Rectangle oldSelection;
+        protected final Rectangle newSelection;
+        private final String name;
+        
+        public SelectAction(Rectangle oldSelection, Rectangle newSelection) {
+            this(oldSelection, newSelection, "Select");
+        }
+        
+        public SelectAction(Rectangle oldSelection, Rectangle newSelection, String name) {
+            this.oldSelection = oldSelection;
+            this.newSelection = newSelection;
+            this.name = name;
+        }
+        
+        @Override
+        public void undo() throws CannotUndoException {
+            super.undo();
+            DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+            panel.marqueeRect = oldSelection;
+            panel.repaint();
+        }
+        
+        @Override
+        public void redo() throws CannotRedoException {
+            super.redo();
+            DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
+            panel.marqueeRect = newSelection;
+            panel.repaint();
+        }
+        
+        @Override
+        public String getPresentationName() {
+            return name;
         }
         
     }
