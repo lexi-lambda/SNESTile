@@ -357,16 +357,11 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 panel.clearOverlay();
-                Map<Point, Pair<Byte, Byte>> actionMap = new HashMap<Point, Pair<Byte, Byte>>();
                 Rectangle rect = getDrawableRect(rectStart, location);
-                for (int i = rect.x; i < rect.x + rect.width + 1; i++) {
-                    for (int j = rect.y; j < rect.y + rect.height + 1; j++) {
-                        Point p = new Point(i, j);
-                        if (!actionMap.containsKey(p))
-                            actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getPaletteSet().getSelectedColorIndex()));
-                        panel.setPixelColor(p, palette.getPaletteSet().getSelectedColorIndex());
-                    }
-                }
+                Graphics2D g = panel.image.createGraphics();
+                g.setColor(palette.getPaletteSet().getSelectedColor());
+                g.fillRect(rect.x, rect.y, rect.width + 1, rect.height + 1);
+                Map<Point, Pair<Byte, Byte>> actionMap = panel.image.commitChanges();
                 panel.repaint();
                 SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
             }
@@ -393,32 +388,11 @@ public class DrawingPanel extends JPanel implements MouseListener, MouseMotionLi
                 DrawingPanel panel = SNESTile.getInstance().getDrawingPanel();
                 PalettePanel palette = SNESTile.getInstance().getPalettePanel();
                 panel.clearOverlay();
-                Map<Point, Pair<Byte, Byte>> actionMap = new HashMap<Point, Pair<Byte, Byte>>();
                 Rectangle rect = getDrawableRect(rectStart, location);
-                for (int i = rect.x; i < rect.x + rect.width; i++) {
-                    Point p1 = new Point(i, rect.y);
-                    Point p2 = new Point(i, rect.y + rect.height);
-                    if (!actionMap.containsKey(p1))
-                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getPaletteSet().getSelectedColorIndex()));
-                    if (!actionMap.containsKey(p2))
-                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getPaletteSet().getSelectedColorIndex()));
-                    panel.setPixelColor(p1, palette.getPaletteSet().getSelectedColorIndex());
-                    panel.setPixelColor(p2, palette.getPaletteSet().getSelectedColorIndex());
-                }
-                for (int i = rect.y; i < rect.y + rect.height; i++) {
-                    Point p1 = new Point(rect.x, i);
-                    Point p2 = new Point(rect.x + rect.width, i);
-                    if (!actionMap.containsKey(p1))
-                        actionMap.put(p1, new Pair<Byte, Byte>(panel.getPixelColor(p1), palette.getPaletteSet().getSelectedColorIndex()));
-                    if (!actionMap.containsKey(p2))
-                        actionMap.put(p2, new Pair<Byte, Byte>(panel.getPixelColor(p2), palette.getPaletteSet().getSelectedColorIndex()));
-                    panel.setPixelColor(p1, palette.getPaletteSet().getSelectedColorIndex());
-                    panel.setPixelColor(p2, palette.getPaletteSet().getSelectedColorIndex());
-                }
-                Point p = new Point(rect.x + rect.width, rect.y + rect.height);
-                if (!actionMap.containsKey(p))
-                    actionMap.put(p, new Pair<Byte, Byte>(panel.getPixelColor(p), palette.getPaletteSet().getSelectedColorIndex()));
-                panel.setPixelColor(p, palette.getPaletteSet().getSelectedColorIndex());
+                Graphics2D g = panel.image.createGraphics();
+                g.setColor(palette.getPaletteSet().getSelectedColor());
+                g.drawRect(rect.x, rect.y, rect.width, rect.height);
+                Map<Point, Pair<Byte, Byte>> actionMap = panel.image.commitChanges();
                 panel.repaint();
                 SNESTile.getInstance().addUndoableEdit(new UndoableEditEvent(this, new DrawAction(actionMap, this)));
             }
