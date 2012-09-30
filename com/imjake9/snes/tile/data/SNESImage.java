@@ -1,8 +1,13 @@
 package com.imjake9.snes.tile.data;
 
+import com.imjake9.snes.tile.utils.Pair;
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Holds SNES GFX data and provides methods for converting back
@@ -20,6 +25,7 @@ public class SNESImage {
         palette = new Palette(colors);
     }
     private BufferedImage buffer;
+    private BufferedImage overlay;
     
     /**
      * Creates a new object based on an array of 4BPP palette values.
@@ -60,6 +66,15 @@ public class SNESImage {
      * @return image
      */
     public BufferedImage getImage() {
+        if (overlay != null) {
+            BufferedImage compound = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = compound.createGraphics();
+            g.drawImage(buffer, 0, 0, null);
+            g.drawImage(overlay, 0, 0, null);
+            g.dispose();
+            return compound;
+        }
+        
         return buffer;
     }
     
@@ -94,12 +109,27 @@ public class SNESImage {
     }
     
     /**
-     * Rebuilds the underlying SNES data based on modifications to the buffer.
+     * Creates a new Graphics2D object which paints to an "overlay" which will
+     * be reflected in {@link #getImage() getImage()}. These changes will
+     * not be reflected in the underlying data until commitChanges() is called.
+     * @return graphics object
      */
-    public void commitChanges() {
-        rawData = new byte[buffer.getWidth() * buffer.getHeight()];
+    public Graphics2D createGraphics() {
+        if (overlay == null)
+            overlay = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        return overlay.createGraphics();
+    }
+    
+    /**
+     * Rebuilds the underlying SNES data based on the current state of the overlay.
+     * Returns a map of changed pixels.
+     * @return change map
+     */
+    public Map<Point, Pair<Byte, Byte>> commitChanges() {
+        Map<Point, Pair<Byte, Byte>> changeMap = new HashMap<Point, Pair<Byte, Byte>>();
+        
         int rowPos = 0, colPos = 0;
-        for (int i = 0; i < rawData.length; i++) {
+        for (int i = 0; i < overlay.getWidth() * overlay.getHeight(); i++) {
             int tileRow = (i % 64) / 8;
             int tileCol = i % 8;
             
@@ -111,8 +141,20 @@ public class SNESImage {
                 }
             }
             
-            rawData[i] = getIndexForColor(new Color(buffer.getRGB(colPos + tileCol, rowPos + tileRow)));
+            int x = colPos + tileCol;
+            int y = rowPos + tileRow;
+            
+            Color color = new Color(overlay.getRGB(x, y), true);
+            if (color.getAlpha() == 0) continue;
+            
+            changeMap.put(new Point(x, y), new Pair<Byte, Byte>(getIndexForColor(new Color(buffer.getRGB(x, y))), getIndexForColor(color)));
+            
+            buffer.setRGB(x, y, color.getRGB());
+            rawData[i] = getIndexForColor(color);
         }
+        overlay = null;
+        
+        return changeMap;
     }
     
     /**
