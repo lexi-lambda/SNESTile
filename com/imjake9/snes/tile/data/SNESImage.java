@@ -1,7 +1,9 @@
 package com.imjake9.snes.tile.data;
 
 import com.imjake9.snes.tile.utils.Pair;
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
@@ -26,6 +28,7 @@ public class SNESImage {
     }
     private BufferedImage buffer;
     private BufferedImage overlay;
+    private BufferedImage image;
     
     /**
      * Creates a new object based on an array of 4BPP palette values.
@@ -41,6 +44,7 @@ public class SNESImage {
      */
     private void rebuildBuffer() {
         buffer = new BufferedImage(128, (rawData.length/128 + 7) / 8 * 8, BufferedImage.TYPE_BYTE_INDEXED, getColorModel());
+        image = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_ARGB);
         int rowPos = 0, colPos = 0;
         for (int i = 0; i < rawData.length; i++) {
             int tileRow = (i % 64) / 8;
@@ -67,12 +71,11 @@ public class SNESImage {
      */
     public BufferedImage getImage() {
         if (overlay != null) {
-            BufferedImage compound = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = compound.createGraphics();
+            Graphics2D g = image.createGraphics();
             g.drawImage(buffer, 0, 0, null);
             g.drawImage(overlay, 0, 0, null);
             g.dispose();
-            return compound;
+            return image;
         }
         
         return buffer;
@@ -112,11 +115,34 @@ public class SNESImage {
      * Creates a new Graphics2D object which paints to an "overlay" which will
      * be reflected in {@link #getImage() getImage()}. These changes will
      * not be reflected in the underlying data until commitChanges() is called.
+     * This is equivalent to calling {@link #createGraphics(boolean) createGraphics(false)}.
      * @return graphics object
      */
     public Graphics2D createGraphics() {
-        if (overlay == null)
+        return createGraphics(false);
+    }
+    
+    /**
+     * Creates a new Graphics2D object which paints to an "overlay" which will
+     * be reflected in {@link #getImage() getImage()}. These changes will
+     * not be reflected in the underlying data until commitChanges() is called.
+     * If the clear parameter is set, the overlay will be cleared even if
+     * it still exists before drawing.
+     * @param clear
+     * @return graphics object
+     */
+    public Graphics2D createGraphics(boolean clear) {
+        if (overlay == null) {
             overlay = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        } else if (clear) {
+            Graphics2D g = overlay.createGraphics();
+            Composite c = g.getComposite();
+            g.setComposite(AlphaComposite.Src);
+            g.setColor(new Color(0x00000000, true));
+            g.fillRect(0, 0, overlay.getWidth(), overlay.getHeight());
+            g.setComposite(c);
+            g.dispose();
+        }
         return overlay.createGraphics();
     }
     
